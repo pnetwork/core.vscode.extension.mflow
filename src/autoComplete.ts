@@ -27,13 +27,11 @@ export function getWfUri(rootPath: string): string {
  */
 export function getWfGraph(rootPath: string, document: vscode.TextDocument): any | undefined {
     const wfUri = getWfUri(rootPath);
-    if (wfUri) {
-        if (document.languageId === "yaml" && document.uri.scheme === "file" && document.fileName === wfUri) {
-            try {
-                return yaml.safeLoad(fs.readFileSync(wfUri, "utf8"));
-            } catch (e) {
-                return undefined;
-            }
+    if (wfUri && document.languageId === "yaml" && document.uri.scheme === "file" && document.fileName === wfUri) {
+        try {
+            return yaml.safeLoad(fs.readFileSync(wfUri, "utf8"));
+        } catch (e) {
+            return undefined;
         }
     }
 }
