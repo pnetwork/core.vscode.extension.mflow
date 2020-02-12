@@ -18,6 +18,9 @@
 		"onCommand:mflow.build.base",
 		"onCommand:mflow.install.script",
 		"onCommand:mflow.uninstall.script",
+		"onCommand:mflow.up",
+		"onCommand:mflow.run",
+		"onCommand:mflow.down",
 		"onLanguage:yaml",
 		"onDidSaveTextDocument"
 	],
@@ -66,8 +69,42 @@
 			{
 				"command": "mflow.uninstall.script",
 				"title": "mflow: Uninstall Script"
+			},
+			{
+				"command": "mflow.up",
+				"title": "mflow: Up"
+			},
+			{
+				"command": "mflow.down",
+				"title": "mflow: Down",
+				"icon": {
+					"light": "./resources/stop-light.svg",
+					"dark": "./resources/stop-dark.svg"
+				}
+			},
+			{
+				"command": "mflow.run",
+				"title": "mflow: Run",
+				"icon": {
+					"light": "./resources/run-light.svg",
+					"dark": "./resources/run-dark.svg"
+				}
 			}
-		]
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"command": "mflow.down",
+					"group": "navigation",
+					"when": "resourceLangId == yaml"
+				},
+				{
+					"command": "mflow.run",
+					"group": "navigation",
+					"when": "resourceLangId == yaml"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

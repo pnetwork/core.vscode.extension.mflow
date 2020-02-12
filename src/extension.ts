@@ -109,6 +109,27 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     context.subscriptions.push(uninstallScriptCmd);
 
+    const upScriptCmd = vscode.commands.registerCommand("mflow.up", async () => {
+        const terminal = activeTerminalwithConfig();
+        terminal.sendText(`${mflowPath} up`);
+        terminal.show();
+    });
+    context.subscriptions.push(upScriptCmd);
+
+    const runScriptCmd = vscode.commands.registerCommand("mflow.run", async () => {
+        const terminal = activeTerminalwithConfig();
+        terminal.sendText(`${mflowPath} run --auto`);
+        terminal.show();
+    });
+    context.subscriptions.push(runScriptCmd);
+
+    const downScriptCmd = vscode.commands.registerCommand("mflow.down", async () => {
+        const terminal = activeTerminalwithConfig();
+        terminal.sendText(`${mflowPath} down`);
+        terminal.show();
+    });
+    context.subscriptions.push(downScriptCmd);
+
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
         if (!rootPath) {
             return;
