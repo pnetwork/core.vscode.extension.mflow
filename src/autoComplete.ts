@@ -38,44 +38,153 @@ export function getWfGraph(rootPath: string, document: vscode.TextDocument): any
     }
 }
 
-/**
- * Find script schema para from: workspace, mflow config base folder setting.
- * @param scriptId: script id.
- * @param rootPath: workspeace root.
- */
-async function findScriptSchema(scriptId: string, rootPath: string): Promise<any> {
-    let files: any = await vscode.workspace.findFiles("**/" + scriptId + ".para");
-    if (files && files.length > 0) {
-        return yaml.safeLoad(fs.readFileSync(files[0].path, "utf8"));
+abstract class AutoComplete {
+    config: any;
+    gbConfig: any;
+    constructor(public rootPath: string, public wfYaml: any, public wfUri: string) {
+        this.rootPath = rootPath;
+        this.wfYaml = wfYaml;
+        this.wfUri = wfUri;
+        this.config = yaml.safeLoad(fs.readFileSync(path.join(this.rootPath, ".mflow", "config.json"), "utf8"), {
+            schema: yaml.JSON_SCHEMA
+        });
+        this.gbConfig = yaml.safeLoad(fs.readFileSync(path.join(os.homedir(), ".mflow", "config.json"), "utf8"), {
+            schema: yaml.JSON_SCHEMA
+        });
     }
 
-    const config = yaml.safeLoad(fs.readFileSync(path.join(rootPath, ".mflow", "config.json"), "utf8"), {
-        schema: yaml.JSON_SCHEMA
-    });
-    const gbConfig = yaml.safeLoad(fs.readFileSync(path.join(os.homedir(), ".mflow", "config.json"), "utf8"), {
-        schema: yaml.JSON_SCHEMA
-    });
-    const blcksBase = config.blcks_code_base ? config.blcks_code_base : gbConfig.blcks_code_base;
-    const ansibleBase = config.ansible_code_base ? config.ansible_code_base : gbConfig.ansible_code_base;
-    const shellBase = config.shell_script_base ? config.shell_script_base : gbConfig.shell_script_base;
-    const ansibleFolder = ansibleBase ? "," + ansibleBase : "";
-    const shellFolder = shellBase ? "," + shellBase : "";
-    const pattern = `{${blcksBase}${ansibleFolder}${shellFolder})}*/${scriptId}.para`;
-    files = glob.sync(pattern);
-    if (files && files.length > 0) {
-        return yaml.safeLoad(fs.readFileSync(files[0], "utf8"));
+    protected abstract getSchemaYaml(nodeId: string): any;
+    public abstract async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]>;
+}
+
+class ScriptAutoComplete extends AutoComplete {
+    protected async getSchemaYaml(nodeId: string): Promise<any> {
+        const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === nodeId);
+        if (scriptMeta && scriptMeta.metadata && scriptMeta.metadata.script) {
+            const scriptId = scriptMeta.metadata.script.id;
+            if (!scriptId) {
+                throw Error("has no script id");
+            }
+
+            let files: any = await vscode.workspace.findFiles("**/" + scriptId + ".para");
+            if (files && files.length > 0) {
+                return yaml.safeLoad(fs.readFileSync(files[0].path, "utf8"));
+            }
+
+            const blcksBase = this.config.blcks_code_base ? this.config.blcks_code_base : this.gbConfig.blcks_code_base;
+            const ansibleBase = this.config.ansible_code_base
+                ? this.config.ansible_code_base
+                : this.gbConfig.ansible_code_base;
+            const shellBase = this.config.shell_script_base
+                ? this.config.shell_script_base
+                : this.gbConfig.shell_script_base;
+            const ansibleFolder = ansibleBase ? "," + ansibleBase : "";
+            const shellFolder = shellBase ? "," + shellBase : "";
+            const pattern = `{${blcksBase}${ansibleFolder}${shellFolder})}*/${scriptId}.para`;
+            files = glob.sync(pattern);
+            if (files && files.length > 0) {
+                return yaml.safeLoad(fs.readFileSync(files[0], "utf8"));
+            }
+        }
+        return undefined;
+    }
+
+    public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
+        const schemaYaml = await this.getSchemaYaml(nodeId);
+        if (!schemaYaml) {
+            throw Error(`scriptId cannot find.`);
+        }
+
+        let options = schemaYaml.outputs;
+        let isArray = false;
+        for (const i in lineTexts) {
+            if (isArray) {
+                isArray = false;
+                if (lineTexts[i].match(/\d/)) {
+                    options = options.items;
+                } else {
+                    options = [];
+                }
+            } else {
+                options = options ? options[lineTexts[i]] : [];
+            }
+            switch (options.type) {
+                case "object": {
+                    options = options.properties;
+                    break;
+                }
+                case "array": {
+                    isArray = true;
+                    if (Number(i) === lineTexts.length - 1) {
+                        options = [];
+                    }
+                    break;
+                }
+                default: {
+                    options = [];
+                    break;
+                }
+            }
+        }
+
+        const dependencies = Object.keys(options || {});
+        return dependencies.map(dep => {
+            return new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field);
+        });
+    }
+}
+
+class EventAutoComplete extends AutoComplete {
+    protected async getSchemaYaml(): Promise<any> {
+        let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
+        if (eventPath) {
+            eventPath = path.join(this.rootPath, eventPath);
+            return yaml.safeLoad(fs.readFileSync(eventPath, "utf8"));
+        }
+        return undefined;
+    }
+
+    public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
+        const eventYaml = await this.getSchemaYaml();
+        if (!eventYaml) {
+            return [new vscode.CompletionItem("")];
+        }
+        let options = eventYaml;
+        let isArray = false;
+        for (const i in lineTexts) {
+            if (isArray) {
+                isArray = false;
+                if (lineTexts[i].match(/\d/) && (options[0] instanceof Object || Array.isArray(options[0]))) {
+                    options = options[0];
+                } else {
+                    options = [];
+                }
+            } else {
+                options = options ? options[lineTexts[i]] : [];
+            }
+            if (Array.isArray(options)) {
+                isArray = true;
+                if (Number(i) === lineTexts.length - 1) {
+                    options = [];
+                }
+            }
+        }
+        const dependencies = Object.keys(options || {});
+        return dependencies.map(dep => {
+            return new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field);
+        });
     }
 }
 
 /**
- * Get script output column
+ * Get script output column by typing value
  * @param document: workflow templaye graph content.
  * @param position: trigger position in document.
  * @param rootPath: workspeace root.
  * @param wfYaml: the newest saved workflow templaye yaml.
  * @param wfUri: the newest saved workflow templaye yaml uri.
  */
-export async function scriptAutoComplete(
+export async function autoComplete(
     document: vscode.TextDocument,
     position: vscode.Position,
     rootPath: string,
@@ -86,9 +195,9 @@ export async function scriptAutoComplete(
         return [new vscode.CompletionItem("")];
     }
     const line = document.lineAt(position).text.substring(0, position.character);
-    const lineText = line.match(/{{\s*(\d)\.([^\s]+\.)?/);
+    const lineText = line.match(/(\d)\.([^\s]+\.)?/);
     if (lineText && lineText.length > 1 && wfYaml && wfYaml.graph) {
-        const scriptMeta = wfYaml.graph.nodes.find((i: { id: string }) => i.id === lineText[1]);
+        let autoComplete: AutoComplete;
         const lineTexts =
             lineText.length > 2 && lineText[2]
                 ? lineText[2]
@@ -96,53 +205,12 @@ export async function scriptAutoComplete(
                       .split(".")
                       .filter(x => x)
                 : [];
-        if (scriptMeta && scriptMeta.metadata && scriptMeta.metadata.script) {
-            const scriptId = scriptMeta.metadata.script.id;
-            if (!scriptId) {
-                throw Error("has no script id");
-            }
-
-            const schemaYaml = await findScriptSchema(scriptId, rootPath);
-            if (!schemaYaml) {
-                throw Error(`scriptId ${scriptId} cannot find.`);
-            }
-
-            let options = schemaYaml.outputs;
-            let isArray = false;
-            for (const i in lineTexts) {
-                if (isArray) {
-                    if (lineTexts[i].match(/\d/)) {
-                        options = options.items;
-                    } else {
-                        options = [];
-                    }
-                } else {
-                    options = options[lineTexts[i]];
-                }
-                switch (options.type) {
-                    case "object": {
-                        options = options.properties;
-                        break;
-                    }
-                    case "array": {
-                        isArray = true;
-                        if (Number(i) === lineTexts.length - 1) {
-                            options = [];
-                        }
-                        break;
-                    }
-                    default: {
-                        options = [];
-                        break;
-                    }
-                }
-            }
-
-            const dependencies = Object.keys(options || {});
-            return dependencies.map(dep => {
-                return new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field);
-            });
+        if (lineText[1] === "0") {
+            autoComplete = new EventAutoComplete(rootPath, wfYaml, wfUri);
+        } else {
+            autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfUri);
         }
+        return autoComplete.getCompletionItems(lineText[1], lineTexts);
     }
     return [new vscode.CompletionItem("")];
 }

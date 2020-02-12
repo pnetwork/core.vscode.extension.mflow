@@ -11,7 +11,7 @@ import {
     execCommandCallback
 } from "./basicInput";
 import * as path from "path";
-import { scriptAutoComplete, getWfGraph, getWfUri } from "./autoComplete";
+import { autoComplete, getWfGraph, getWfUri } from "./autoComplete";
 
 export function activate(context: vscode.ExtensionContext): void {
     const ouputChannel = window.createOutputChannel("mflow ouput");
@@ -129,7 +129,7 @@ export function activate(context: vscode.ExtensionContext): void {
             {
                 async provideCompletionItems(document, position) {
                     await vscode.commands.executeCommand("workbench.action.files.save");
-                    const item: [vscode.CompletionItem] = await scriptAutoComplete(
+                    const item: [vscode.CompletionItem] = await autoComplete(
                         document,
                         position,
                         rootPath,
@@ -141,7 +141,7 @@ export function activate(context: vscode.ExtensionContext): void {
                         })
                         .catch(function(error: Error) {
                             console.log(error);
-                            return [new vscode.CompletionItem("No suggestion")];
+                            return [new vscode.CompletionItem("")];
                         });
                     return item;
                 }
