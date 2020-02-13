@@ -170,6 +170,18 @@ export function activate(context: vscode.ExtensionContext): void {
             "."
         )
     );
+
+    const logsCmd = vscode.commands.registerCommand("mflow.logs", async () => {
+        let scriptId = await createInputBox("Please enter script id: ", "notification or *");
+        if (!scriptId) {
+            return;
+        }
+        scriptId = scriptId === "*" ? "" : scriptId;
+        const terminal = activeTerminalwithConfig();
+        terminal.sendText(`${mflowPath} logs -v ${scriptId}`);
+        terminal.show();
+    });
+    context.subscriptions.push(logsCmd);
 }
 
 // this method is called when your extension is deactivated

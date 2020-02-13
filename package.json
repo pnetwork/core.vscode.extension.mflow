@@ -21,6 +21,7 @@
 		"onCommand:mflow.up",
 		"onCommand:mflow.run",
 		"onCommand:mflow.down",
+		"onCommand:mflow.logs",
 		"onLanguage:yaml",
 		"onDidSaveTextDocument"
 	],
@@ -72,7 +73,7 @@
 			},
 			{
 				"command": "mflow.up",
-				"title": "mflow: Up"
+				"title": "%mflow.up.title%"
 			},
 			{
 				"command": "mflow.down",
@@ -89,19 +90,23 @@
 					"light": "./resources/run-light.svg",
 					"dark": "./resources/run-dark.svg"
 				}
+			},
+			{
+				"command": "mflow.logs",
+				"title": "mflow: Logs"
 			}
 		],
 		"menus": {
 			"editor/title": [
 				{
 					"command": "mflow.down",
-					"group": "navigation",
-					"when": "resourceLangId == yaml"
+					"when": "resourceLangId == yaml",
+					"group": "navigation@-1"
 				},
 				{
 					"command": "mflow.run",
-					"group": "navigation",
-					"when": "resourceLangId == yaml"
+					"when": "resourceLangId == yaml",
+					"group": "navigation@-2"
 				}
 			]
 		}
