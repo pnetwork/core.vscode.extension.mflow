@@ -6,6 +6,12 @@
 import { window, OpenDialogOptions, InputBoxOptions, Terminal, workspace, Uri, OutputChannel, commands } from "vscode";
 import * as child from "child_process";
 
+export enum PackType {
+    ALL = "All",
+    SCRIPT = "Script",
+    WORKFLOW = "Only Workflow"
+}
+
 /**
  * Create input box.
  * @param desc: the description in input box prompt.

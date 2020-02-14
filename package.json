@@ -3,6 +3,7 @@
 	"displayName": "mflow-extension",
 	"description": "",
 	"version": "0.0.1",
+	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
 	},
@@ -22,6 +23,8 @@
 		"onCommand:mflow.run",
 		"onCommand:mflow.down",
 		"onCommand:mflow.logs",
+		"onCommand:mflow.pack",
+		"onCommand:mflow.deploy",
 		"onLanguage:yaml",
 		"onDidSaveTextDocument"
 	],
@@ -33,7 +36,7 @@
 			"properties": {
 				"mflow.path": {
 					"type": "string",
-					"default": "",
+					"default": "/Users/chelsealo/code/src_code/env_mflow/bin/mflow",
 					"description": "mflow.path"
 				}
 			}
@@ -73,7 +76,7 @@
 			},
 			{
 				"command": "mflow.up",
-				"title": "%mflow.up.title%"
+				"title": "mflow: Up"
 			},
 			{
 				"command": "mflow.down",
@@ -94,6 +97,14 @@
 			{
 				"command": "mflow.logs",
 				"title": "mflow: Logs"
+			},
+			{
+				"command": "mflow.pack",
+				"title": "mflow: Pack mflow Project"
+			},
+			{
+				"command": "mflow.deploy",
+				"title": "mflow: Deploy to Marvin Url"
 			}
 		],
 		"menus": {

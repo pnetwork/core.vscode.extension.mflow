@@ -2,15 +2,21 @@ import * as assert from "assert";
 import { suite, test } from "mocha";
 import * as vscode from "vscode";
 
-suite("Extension Test Suite", () => {
+async function waitForExtension(ms: number): Promise<NodeJS.Timeout> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+suite("Extension Test Suite", function() {
+    this.timeout(10000);
     const extensionId = "pentium.mflow-extension";
     vscode.window.showInformationMessage("Start all tests.");
 
-    test("should be present", () => {
+    test("extension running check ", () => {
         assert.ok(vscode.extensions.getExtension(extensionId));
     });
 
-    test("Should be able to register mflow commands", async () => {
+    test("mflow commands registration check", async () => {
+        vscode.commands.executeCommand("mflow.show.version");
+        await waitForExtension(3000);
         const commands = await vscode.commands.getCommands(true);
         const MFLOW_COMMANDS = [
             "mflow.show.version",
@@ -22,9 +28,11 @@ suite("Extension Test Suite", () => {
             "mflow.install.script",
             "mflow.uninstall.script",
             "mflow.up",
-            "mflow.down",
             "mflow.run",
-            "mflow.logs"
+            "mflow.down",
+            "mflow.logs",
+            "mflow.pack",
+            "mflow.deploy"
         ];
         const foundArduinoCommands = commands.filter(value => {
             return MFLOW_COMMANDS.indexOf(value) >= 0 || value.startsWith("mflow.");

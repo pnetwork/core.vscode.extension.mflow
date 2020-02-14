@@ -8,7 +8,8 @@ import {
     activeTerminalwithConfig,
     createInputBox,
     getMFlowPath,
-    execCommandCallback
+    execCommandCallback,
+    PackType
 } from "./basicInput";
 import * as path from "path";
 import { autoComplete, getWfGraph, getWfUri } from "./autoComplete";
@@ -17,12 +18,13 @@ export function activate(context: vscode.ExtensionContext): void {
     const ouputChannel = window.createOutputChannel("mflow ouput");
     const mflowPath = getMFlowPath();
     const rootPath = vscode.workspace.rootPath || "";
+    const noRootPatgErrorMsg = "Please create or open mflow project first!";
     let wfUri: string;
     let wfYaml: any;
 
     const showVersionCmd = vscode.commands.registerCommand("mflow.show.version", () => {
         const terminal = activeTerminalwithConfig();
-        terminal.sendText("mflow -V");
+        terminal.sendText(`${mflowPath} -V`);
         terminal.show();
     });
     context.subscriptions.push(showVersionCmd);
@@ -30,6 +32,10 @@ export function activate(context: vscode.ExtensionContext): void {
     const createProjectCmd = vscode.commands.registerCommand("mflow.create.project", async () => {
         const quickPick = window.createQuickPick();
         quickPick.items = [{ label: "$(file-directory) Browse... (recently used)" }];
+        quickPick.onDidAccept((aaa: any) => {
+            console.log(aaa, aaa.length);
+            console.log("***");
+        });
         quickPick.onDidChangeSelection(selection => {
             if (selection[0]) {
                 createProject(ouputChannel);
@@ -172,6 +178,10 @@ export function activate(context: vscode.ExtensionContext): void {
     );
 
     const logsCmd = vscode.commands.registerCommand("mflow.logs", async () => {
+        if (!rootPath) {
+            vscode.window.showErrorMessage(noRootPatgErrorMsg);
+            return;
+        }
         let scriptId = await createInputBox("Please enter script id: ", "notification or *");
         if (!scriptId) {
             return;
@@ -182,6 +192,52 @@ export function activate(context: vscode.ExtensionContext): void {
         terminal.show();
     });
     context.subscriptions.push(logsCmd);
+
+    const packCmd = vscode.commands.registerCommand("mflow.pack", async () => {
+        if (!rootPath) {
+            vscode.window.showErrorMessage(noRootPatgErrorMsg);
+            return;
+        }
+        const quickPick = window.createQuickPick();
+        quickPick.items = Object.values(PackType).map(label => ({ label }));
+        quickPick.onDidChangeSelection(selection => {
+            if (selection[0]) {
+                if (selection[0].label === PackType.SCRIPT) {
+                    const scriptQuickPick = window.createQuickPick();
+                    scriptQuickPick.items = [{ label: "a" }, { label: "b" }];
+                    scriptQuickPick.onDidChangeSelection(scriptSelect => {
+                        console.log(scriptSelect[0]);
+                    });
+                    scriptQuickPick.onDidHide(() => quickPick.dispose());
+                    scriptQuickPick.show();
+                } else {
+                    const terminal = activeTerminalwithConfig();
+                    const packTartget = selection[0].label === PackType.ALL ? "--all" : "";
+                    terminal.sendText(`${mflowPath} pack ${packTartget}`);
+                    terminal.show();
+                }
+            }
+        });
+        quickPick.onDidHide(() => quickPick.dispose());
+        quickPick.show();
+    });
+    context.subscriptions.push(packCmd);
+
+    const deployCmd = vscode.commands.registerCommand("mflow.deploy", async () => {
+        if (!rootPath) {
+            vscode.window.showErrorMessage(noRootPatgErrorMsg);
+            return;
+        }
+        let isOverwrite = await createInputBox("Do you want to overwrite existing script on Marvin ? ", "Y/N");
+        if (!isOverwrite) {
+            return;
+        }
+        isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
+        const terminal = activeTerminalwithConfig();
+        terminal.sendText(`${mflowPath} deploy -all ${isOverwrite}`);
+        terminal.show();
+    });
+    context.subscriptions.push(deployCmd);
 }
 
 // this method is called when your extension is deactivated

@@ -55,7 +55,7 @@ abstract class AutoComplete {
     public abstract async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]>;
 }
 
-class ScriptAutoComplete extends AutoComplete {
+export class ScriptAutoComplete extends AutoComplete {
     protected async getSchemaYaml(nodeId: string): Promise<any> {
         const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === nodeId);
         if (scriptMeta && scriptMeta.metadata && scriptMeta.metadata.script) {
@@ -63,7 +63,6 @@ class ScriptAutoComplete extends AutoComplete {
             if (!scriptId) {
                 throw Error("has no script id");
             }
-
             let files: any = await vscode.workspace.findFiles("**/" + scriptId + ".para");
             if (files && files.length > 0) {
                 return yaml.safeLoad(fs.readFileSync(files[0].path, "utf8"));
@@ -106,7 +105,7 @@ class ScriptAutoComplete extends AutoComplete {
             } else {
                 options = options ? options[lineTexts[i]] : [];
             }
-            switch (options.type) {
+            switch (options && options.type) {
                 case "object": {
                     options = options.properties;
                     break;
@@ -132,7 +131,7 @@ class ScriptAutoComplete extends AutoComplete {
     }
 }
 
-class EventAutoComplete extends AutoComplete {
+export class EventAutoComplete extends AutoComplete {
     protected async getSchemaYaml(): Promise<any> {
         let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
         if (eventPath) {
