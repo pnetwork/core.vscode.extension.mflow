@@ -36,7 +36,7 @@
 			"properties": {
 				"mflow.path": {
 					"type": "string",
-					"default": "/Users/chelsealo/code/src_code/env_mflow/bin/mflow",
+					"default": "",
 					"description": "mflow.path"
 				}
 			}
