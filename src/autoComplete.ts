@@ -36,6 +36,10 @@ export function getWfGraph(rootPath: string, document: vscode.TextDocument): any
     }
 }
 
+/**
+ * The absctract auto complete class.
+ * Define members who needed in event/script auto comlate.
+ */
 abstract class AutoComplete {
     config: any;
     gbConfig: any;
@@ -52,10 +56,22 @@ abstract class AutoComplete {
     }
 
     protected abstract getSchemaYaml(nodeId: string): any;
+    /**
+     * Get auto complete options.
+     * @param nodeId: the node id from wf template graph.yaml.
+     * @param lineTexts: the keying text split by `.`, i.e. [results, 0, fail]
+     */
     public abstract async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]>;
 }
 
+/**
+ * Script auto Complete
+ */
 export class ScriptAutoComplete extends AutoComplete {
+    /**
+     * Get the script schema para.
+     * @param nodeId: the node id from wf template graph.yaml.
+     */
     protected async getSchemaYaml(nodeId: string): Promise<any> {
         const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === nodeId);
         if (scriptMeta && scriptMeta.metadata && scriptMeta.metadata.script) {
@@ -131,7 +147,14 @@ export class ScriptAutoComplete extends AutoComplete {
     }
 }
 
+/**
+ * Event auto Complete
+ */
 export class EventAutoComplete extends AutoComplete {
+    /**
+     * Get the Event schema para.
+     * @param nodeId: the node id from wf template graph.yaml.
+     */
     protected async getSchemaYaml(): Promise<any> {
         let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
         if (eventPath) {
