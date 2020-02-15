@@ -16,7 +16,6 @@
 		"onCommand:mflow.blcks.create",
 		"onCommand:mflow.ansible.create",
 		"onCommand:mflow.shell.create",
-		"onCommand:mflow.build.base",
 		"onCommand:mflow.install.script",
 		"onCommand:mflow.uninstall.script",
 		"onCommand:mflow.up",
@@ -61,10 +60,6 @@
 			{
 				"command": "mflow.shell.create",
 				"title": "mflow: Create Shell"
-			},
-			{
-				"command": "mflow.build.base",
-				"title": "mflow: Build Base Image"
 			},
 			{
 				"command": "mflow.install.script",

@@ -3,14 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *-------------------------------------------------------------------------------------------- */
 
-import { window, OpenDialogOptions, InputBoxOptions, Terminal, workspace, Uri, OutputChannel, commands } from "vscode";
+import { window, OpenDialogOptions, InputBoxOptions, Terminal, workspace, OutputChannel, QuickPickItem } from "vscode";
 import * as child from "child_process";
-
-export enum PackType {
-    ALL = "All",
-    SCRIPT = "Script",
-    WORKFLOW = "Only Workflow"
-}
 
 /**
  * Create input box.
@@ -24,6 +18,26 @@ export async function createInputBox(desc: string, example?: string): Promise<st
     };
     const result = await window.showInputBox(options);
     return result;
+}
+
+/**
+ * Create quick pick.
+ * @param items: quick pick items.
+ * @param onSelectFunc: on select item function.
+ */
+export async function createQuickPick(
+    quickPickItems: any[],
+    onSelectFunc: (selection: QuickPickItem) => void
+): Promise<void> {
+    const quickPick = window.createQuickPick();
+    quickPick.items = quickPickItems;
+    quickPick.onDidChangeSelection(async selection => {
+        if (selection[0]) {
+            await onSelectFunc(selection[0]);
+        }
+    });
+    quickPick.onDidHide(() => quickPick.dispose());
+    quickPick.show();
 }
 
 /**
@@ -86,27 +100,4 @@ export function activeTerminalwithConfig(): Terminal {
         terminal = window.createTerminal("mflow Terminal");
     }
     return terminal;
-}
-
-/**
- * Create mflow Project
- * @param mflowOuputChannel: the output channel of mflow.
- */
-export async function createProject(mflowOuputChannel: OutputChannel): Promise<void> {
-    const folderUri = await createBrowseFolder();
-    console.log("Selected folder: " + folderUri);
-
-    const projectName = await createInputBox("Please enter project name: ");
-    if (!projectName) {
-        return;
-    }
-
-    const mflowPath = getMFlowPath();
-
-    const openFolder = execCommandCallback(mflowOuputChannel, () => {
-        const workspaceUri: Uri = Uri.parse(folderUri + "/" + projectName);
-        commands.executeCommand("vscode.openFolder", workspaceUri);
-    });
-
-    child.execFile(`${mflowPath}`, ["create", `${projectName}`], { cwd: folderUri }, openFolder);
 }

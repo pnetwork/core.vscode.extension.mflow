@@ -24,7 +24,6 @@ suite("Extension Test Suite", function() {
             "mflow.blcks.create",
             "mflow.ansible.create",
             "mflow.shell.create",
-            "mflow.build.base",
             "mflow.install.script",
             "mflow.uninstall.script",
             "mflow.up",

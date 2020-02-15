@@ -2,139 +2,122 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { window } from "vscode";
-import * as child from "child_process";
 import {
-    createProject,
     activeTerminalwithConfig,
     createInputBox,
+    createQuickPick,
     getMFlowPath,
-    execCommandCallback,
-    PackType
+    createBrowseFolder
 } from "./basicInput";
-import * as path from "path";
+import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
 import { autoComplete, getWfGraph, getWfUri } from "./autoComplete";
 
-export function activate(context: vscode.ExtensionContext): void {
+export function activate(c: vscode.ExtensionContext): void {
     const ouputChannel = window.createOutputChannel("mflow ouput");
-    const mflowPath = getMFlowPath();
+    let mflowPath = getMFlowPath();
     const rootPath = vscode.workspace.rootPath || "";
-    const noRootPatgErrorMsg = "Please create or open mflow project first!";
     let wfUri: string;
     let wfYaml: any;
+    const mflowCmd = new MFlowCommand(mflowPath, rootPath, ouputChannel);
 
     const showVersionCmd = vscode.commands.registerCommand("mflow.show.version", () => {
         const terminal = activeTerminalwithConfig();
         terminal.sendText(`${mflowPath} -V`);
         terminal.show();
     });
-    context.subscriptions.push(showVersionCmd);
+    c.subscriptions.push(showVersionCmd);
 
     const createProjectCmd = vscode.commands.registerCommand("mflow.create.project", async () => {
-        const quickPick = window.createQuickPick();
-        quickPick.items = [{ label: "$(file-directory) Browse... (recently used)" }];
-        quickPick.onDidAccept((aaa: any) => {
-            console.log(aaa, aaa.length);
-            console.log("***");
-        });
-        quickPick.onDidChangeSelection(selection => {
-            if (selection[0]) {
-                createProject(ouputChannel);
+        const items = [{ label: "$(file-directory) Browse... (recently used)" }];
+        await createQuickPick(items, async () => {
+            const folderUri = await createBrowseFolder();
+            if (folderUri) {
+                console.log("Selected folder: " + folderUri);
+                const projectName = await createInputBox("Please enter project name: ");
+                if (!projectName) {
+                    return;
+                }
+                mflowCmd.createProject(projectName, folderUri);
             }
         });
-        quickPick.onDidHide(() => quickPick.dispose());
-        quickPick.show();
     });
-    context.subscriptions.push(createProjectCmd);
+    c.subscriptions.push(createProjectCmd);
 
-    const createBlcksCmd = vscode.commands.registerCommand("mflow.blcks.create", async () => {
-        const blcksName = await createInputBox("Please enter blcks name: ");
-        if (!blcksName) {
-            return;
-        }
-        const openFile = execCommandCallback(ouputChannel, () => {
-            const uu = vscode.Uri.parse(path.join(rootPath, "src", "blcks", blcksName, `${blcksName}.para`));
-            vscode.commands.executeCommand("vscode.open", uu);
+    const scriptTypeValues = Object.values(ScriptTypes);
+    for (const i of scriptTypeValues) {
+        const scriptCmd = vscode.commands.registerCommand(`mflow.${i}.create`, async () => {
+            const name = await createInputBox(`Please enter ${i} name: `);
+            if (!name) {
+                return;
+            }
+            await mflowCmd.createScript(i, name);
         });
-        child.execFile(`${mflowPath}`, ["blcks", "create", `${blcksName}`], { cwd: rootPath }, openFile);
-    });
-    context.subscriptions.push(createBlcksCmd);
-
-    const createAnsibleCmd = vscode.commands.registerCommand("mflow.ansible.create", async () => {
-        const ansibleName = await createInputBox("Please enter ansible name: ");
-        if (!ansibleName) {
-            return;
-        }
-        const openFile = execCommandCallback(ouputChannel, () => {
-            const uu = vscode.Uri.parse(path.join(rootPath, "src", "ansible", ansibleName, `${ansibleName}.para`));
-            vscode.commands.executeCommand("vscode.open", uu);
-        });
-        child.execFile(`${mflowPath}`, ["ansible", "create", `${ansibleName}`], { cwd: rootPath }, openFile);
-    });
-    context.subscriptions.push(createAnsibleCmd);
-
-    const createShellCmd = vscode.commands.registerCommand("mflow.shell.create", async () => {
-        const shellName = await createInputBox("Please enter shell name: ");
-        if (!shellName) {
-            return;
-        }
-        const openFile = execCommandCallback(ouputChannel, () => {
-            const uu = vscode.Uri.parse(path.join(rootPath, "src", "shell", shellName, `${shellName}.para`));
-            vscode.commands.executeCommand("vscode.open", uu);
-        });
-        child.execFile(`${mflowPath}`, ["shell", "create", `${shellName}`], { cwd: rootPath }, openFile);
-    });
-    context.subscriptions.push(createShellCmd);
-
-    const buildbaseCmd = vscode.commands.registerCommand("mflow.build.base", async () => {
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} buildbase`);
-        terminal.show();
-    });
-    context.subscriptions.push(buildbaseCmd);
+        c.subscriptions.push(scriptCmd);
+    }
 
     const installScriptCmd = vscode.commands.registerCommand("mflow.install.script", async () => {
-        let scriptId = await createInputBox("Please enter script id: ", "notification or notification==0.5.0 or *");
+        const scriptId = await createInputBox("Please enter script id: ", "notification or notification==0.5.0 or *");
         if (!scriptId) {
             return;
         }
-        scriptId = scriptId === "*" ? "" : scriptId;
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} install ${scriptId}`);
-        terminal.show();
+        mflowCmd.installScript(scriptId);
     });
-    context.subscriptions.push(installScriptCmd);
+    c.subscriptions.push(installScriptCmd);
 
     const uninstallScriptCmd = vscode.commands.registerCommand("mflow.uninstall.script", async () => {
         const scriptId = await createInputBox("Please enter script id: ", "notification");
         if (!scriptId) {
             return;
         }
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} uninstall ${scriptId}`);
-        terminal.show();
+        mflowCmd.uninstallScript(scriptId);
     });
-    context.subscriptions.push(uninstallScriptCmd);
+    c.subscriptions.push(uninstallScriptCmd);
 
-    const upScriptCmd = vscode.commands.registerCommand("mflow.up", async () => {
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} up`);
-        terminal.show();
+    const upCmd = vscode.commands.registerCommand("mflow.up", () => {
+        mflowCmd.up();
     });
-    context.subscriptions.push(upScriptCmd);
+    c.subscriptions.push(upCmd);
 
-    const runScriptCmd = vscode.commands.registerCommand("mflow.run", async () => {
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} run --auto`);
-        terminal.show();
+    const runCmd = vscode.commands.registerCommand("mflow.run", () => {
+        mflowCmd.run();
     });
-    context.subscriptions.push(runScriptCmd);
+    c.subscriptions.push(runCmd);
 
-    const downScriptCmd = vscode.commands.registerCommand("mflow.down", async () => {
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} down`);
-        terminal.show();
+    const downCmd = vscode.commands.registerCommand("mflow.down", async () => {
+        mflowCmd.down();
     });
-    context.subscriptions.push(downScriptCmd);
+    c.subscriptions.push(downCmd);
+
+    const logsCmd = vscode.commands.registerCommand("mflow.logs", async () => {
+        const scriptId = await createInputBox("Please enter script id: ", "notification or *");
+        if (!scriptId) {
+            return;
+        }
+        mflowCmd.logs(scriptId);
+    });
+    c.subscriptions.push(logsCmd);
+
+    const packCmd = vscode.commands.registerCommand("mflow.pack", async () => {
+        const quickPick = window.createQuickPick();
+        quickPick.items = Object.values(PackTypes).map(label => ({ label }));
+
+        await createQuickPick(
+            Object.values(PackTypes).map(label => ({ label })),
+            async selection => {
+                await mflowCmd.pack(selection);
+            }
+        );
+    });
+    c.subscriptions.push(packCmd);
+
+    const deployCmd = vscode.commands.registerCommand("mflow.deploy", async () => {
+        const isOverwrite = await createInputBox("Do you want to overwrite existing script on Marvin ? ", "Y/N");
+        if (!isOverwrite) {
+            return;
+        }
+        mflowCmd.deploy(isOverwrite);
+    });
+    c.subscriptions.push(deployCmd);
 
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
         if (!rootPath) {
@@ -150,7 +133,11 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
 
-    context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(() => {
+        mflowPath = getMFlowPath();
+    });
+
+    c.subscriptions.push(
         vscode.languages.registerCompletionItemProvider(
             "yaml",
             {
@@ -176,68 +163,6 @@ export function activate(context: vscode.ExtensionContext): void {
             "."
         )
     );
-
-    const logsCmd = vscode.commands.registerCommand("mflow.logs", async () => {
-        if (!rootPath) {
-            vscode.window.showErrorMessage(noRootPatgErrorMsg);
-            return;
-        }
-        let scriptId = await createInputBox("Please enter script id: ", "notification or *");
-        if (!scriptId) {
-            return;
-        }
-        scriptId = scriptId === "*" ? "" : scriptId;
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} logs -v ${scriptId}`);
-        terminal.show();
-    });
-    context.subscriptions.push(logsCmd);
-
-    const packCmd = vscode.commands.registerCommand("mflow.pack", async () => {
-        if (!rootPath) {
-            vscode.window.showErrorMessage(noRootPatgErrorMsg);
-            return;
-        }
-        const quickPick = window.createQuickPick();
-        quickPick.items = Object.values(PackType).map(label => ({ label }));
-        quickPick.onDidChangeSelection(selection => {
-            if (selection[0]) {
-                if (selection[0].label === PackType.SCRIPT) {
-                    const scriptQuickPick = window.createQuickPick();
-                    scriptQuickPick.items = [{ label: "a" }, { label: "b" }];
-                    scriptQuickPick.onDidChangeSelection(scriptSelect => {
-                        console.log(scriptSelect[0]);
-                    });
-                    scriptQuickPick.onDidHide(() => quickPick.dispose());
-                    scriptQuickPick.show();
-                } else {
-                    const terminal = activeTerminalwithConfig();
-                    const packTartget = selection[0].label === PackType.ALL ? "--all" : "";
-                    terminal.sendText(`${mflowPath} pack ${packTartget}`);
-                    terminal.show();
-                }
-            }
-        });
-        quickPick.onDidHide(() => quickPick.dispose());
-        quickPick.show();
-    });
-    context.subscriptions.push(packCmd);
-
-    const deployCmd = vscode.commands.registerCommand("mflow.deploy", async () => {
-        if (!rootPath) {
-            vscode.window.showErrorMessage(noRootPatgErrorMsg);
-            return;
-        }
-        let isOverwrite = await createInputBox("Do you want to overwrite existing script on Marvin ? ", "Y/N");
-        if (!isOverwrite) {
-            return;
-        }
-        isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-        const terminal = activeTerminalwithConfig();
-        terminal.sendText(`${mflowPath} deploy -all ${isOverwrite}`);
-        terminal.show();
-    });
-    context.subscriptions.push(deployCmd);
 }
 
 // this method is called when your extension is deactivated
