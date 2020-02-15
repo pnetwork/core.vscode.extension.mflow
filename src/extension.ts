@@ -98,24 +98,23 @@ export function activate(c: vscode.ExtensionContext): void {
     c.subscriptions.push(logsCmd);
 
     const packCmd = vscode.commands.registerCommand("mflow.pack", async () => {
+        const items = Object.values(PackTypes).map(label => ({ label }));
+        await createQuickPick(items, async selection => {
+            await mflowCmd.pack(selection);
+        });
+    });
+    c.subscriptions.push(packCmd);
+
+    const deployCmd = vscode.commands.registerCommand("mflow.deploy", async () => {
         const quickPick = window.createQuickPick();
         quickPick.items = Object.values(PackTypes).map(label => ({ label }));
 
         await createQuickPick(
             Object.values(PackTypes).map(label => ({ label })),
             async selection => {
-                await mflowCmd.pack(selection);
+                await mflowCmd.deploy(selection);
             }
         );
-    });
-    c.subscriptions.push(packCmd);
-
-    const deployCmd = vscode.commands.registerCommand("mflow.deploy", async () => {
-        const isOverwrite = await createInputBox("Do you want to overwrite existing script on Marvin ? ", "Y/N");
-        if (!isOverwrite) {
-            return;
-        }
-        mflowCmd.deploy(isOverwrite);
     });
     c.subscriptions.push(deployCmd);
 

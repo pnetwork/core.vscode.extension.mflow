@@ -1,14 +1,20 @@
 import { window, workspace, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
 import * as child from "child_process";
 import * as path from "path";
-import { activeTerminalwithConfig, createQuickPick, getMFlowPath, execCommandCallback } from "./basicInput";
+import {
+    activeTerminalwithConfig,
+    createQuickPick,
+    getMFlowPath,
+    execCommandCallback,
+    createInputBox
+} from "./basicInput";
 
 /**
  * Package source type.
  */
 export enum PackTypes {
-    ALL = "All",
-    SCRIPT = "Script",
+    ALL = "The mflow Project",
+    SCRIPT = "Only Script",
     WORKFLOW = "Only Workflow"
 }
 
@@ -57,14 +63,26 @@ export class MFlowCommand {
         return items;
     }
 
+    private getScriptTypeFromPath(scriptSelect: QuickPickItem, scriptPath?: string): string | undefined {
+        if (scriptPath) {
+            const scriptType = Object.values(ScriptTypes).filter((a: string) =>
+                scriptPath.startsWith(path.join(this.rootPath, "src", a))
+            );
+            if (scriptType && scriptType.length > 0) {
+                return scriptType[0];
+            }
+        }
+    }
+
     /**
      * Excute commands on terminal view.
-     * @param command: command.
-     * @param commands: other commands.
+     * @param commands: commands.
      */
-    private sendCommandtoTerminal(command: string, ...commands: string[]): void {
+    private sendCommandtoTerminal(...commands: string[]): void {
+        if (!(commands && commands.length > 0)) {
+            throw Error("commands mush has value.");
+        }
         const terminal = activeTerminalwithConfig();
-        terminal.sendText(command);
         for (const i of commands) {
             terminal.sendText(i);
         }
@@ -178,12 +196,7 @@ export class MFlowCommand {
             const scripts = await this.getSrcScriptPath();
             await createQuickPick(scripts, scriptSelect => {
                 const scriptPath = scriptSelect.description;
-                if (!scriptPath) {
-                    return;
-                }
-                const scriptType = Object.values(ScriptTypes).filter((a: string) =>
-                    scriptPath.startsWith(path.join(this.rootPath, "src", a))
-                );
+                const scriptType = this.getScriptTypeFromPath(scriptSelect, scriptPath);
                 this.sendCommandtoTerminal(`cd ${scriptPath}`, `${this.mflowPath} ${scriptType} pack`);
             });
         } else {
@@ -196,11 +209,31 @@ export class MFlowCommand {
      * Deploy the wf template and script from pack()
      * @param isOverwrite: is overwirte exists scripts/wf templates on marvel
      */
-    public deploy(isOverwrite: string): void {
+    public async deploy(packType: QuickPickItem): Promise<void> {
         if (!this.verifyRootPath()) {
             return;
         }
-        isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-        this.sendCommandtoTerminal(`${this.mflowPath} deploy -all ${isOverwrite}`);
+        const overwirteQ = "Do you want to overwrite existing script on Marvin ? ";
+        if (packType.label === PackTypes.SCRIPT) {
+            const scripts = await this.getSrcScriptPath();
+            await createQuickPick(scripts, async scriptSelect => {
+                const scriptPath = scriptSelect.description;
+                const scriptType = this.getScriptTypeFromPath(scriptSelect, scriptPath);
+                let isOverwrite = await createInputBox(overwirteQ, "Y/N");
+                if (!isOverwrite) {
+                    return;
+                }
+                isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
+                this.sendCommandtoTerminal(`cd ${scriptPath}`, `${this.mflowPath} ${scriptType} deploy ${isOverwrite}`);
+            });
+        } else {
+            const packtype = packType.label === PackTypes.ALL ? "-a" : "";
+            let isOverwrite = await createInputBox(overwirteQ, "Y/N");
+            if (!isOverwrite) {
+                return;
+            }
+            isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
+            this.sendCommandtoTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);
+        }
     }
 }
