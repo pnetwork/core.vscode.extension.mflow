@@ -63,7 +63,11 @@ export class MFlowCommand {
         return items;
     }
 
-    private getScriptTypeFromPath(scriptSelect: QuickPickItem, scriptPath?: string): string | undefined {
+    /**
+     * Get script types from script project path
+     * @param scriptPath: script project path. i.e. /User/xxx/mflowProject/src/blcks/balances
+     */
+    private getScriptTypeFromPath(scriptPath?: string): string | undefined {
         if (scriptPath) {
             const scriptType = Object.values(ScriptTypes).filter((a: string) =>
                 scriptPath.startsWith(path.join(this.rootPath, "src", a))
@@ -87,6 +91,13 @@ export class MFlowCommand {
             terminal.sendText(i);
         }
         terminal.show();
+    }
+
+    /**
+     * Get mflow version.
+     */
+    public getVersion(): void {
+        this.sendCommandtoTerminal(`${this.mflowPath} -V`);
     }
 
     /**
@@ -196,7 +207,7 @@ export class MFlowCommand {
             const scripts = await this.getSrcScriptPath();
             await createQuickPick(scripts, scriptSelect => {
                 const scriptPath = scriptSelect.description;
-                const scriptType = this.getScriptTypeFromPath(scriptSelect, scriptPath);
+                const scriptType = this.getScriptTypeFromPath(scriptPath);
                 this.sendCommandtoTerminal(`cd ${scriptPath}`, `${this.mflowPath} ${scriptType} pack`);
             });
         } else {
@@ -218,7 +229,7 @@ export class MFlowCommand {
             const scripts = await this.getSrcScriptPath();
             await createQuickPick(scripts, async scriptSelect => {
                 const scriptPath = scriptSelect.description;
-                const scriptType = this.getScriptTypeFromPath(scriptSelect, scriptPath);
+                const scriptType = this.getScriptTypeFromPath(scriptPath);
                 let isOverwrite = await createInputBox(overwirteQ, "Y/N");
                 if (!isOverwrite) {
                     return;

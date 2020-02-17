@@ -33,10 +33,5 @@
     "env": {
         "es6": true,
         "node": true
-    },
-    "globals": {
-        "page": true,
-        "browser": true
-    },
-    "settings": {}
+    }
 }
