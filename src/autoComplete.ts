@@ -83,11 +83,7 @@ export class ScriptAutoComplete extends AutoComplete {
             if (files && files.length > 0) {
                 return yaml.safeLoad(fs.readFileSync(files[0].path, "utf8"));
             }
-            const blcksBase = {
-                ...this.gbConfig.blcks_code_base,
-                ...this.config.blcks_code_base
-            };
-            // const blcksBase = this.config.blcks_code_base ? this.config.blcks_code_base : this.gbConfig.blcks_code_base;
+            const blcksBase = this.config.blcks_code_base ? this.config.blcks_code_base : this.gbConfig.blcks_code_base;
             const ansibleBase = this.config.ansible_code_base
                 ? this.config.ansible_code_base
                 : this.gbConfig.ansible_code_base;
@@ -225,6 +221,7 @@ export async function autoComplete(
             lineText.length > 2 && lineText[2]
                 ? lineText[2]
                       .replace(/(\[)+(\d)(\])+/g, ".$2.")
+                      .replace("[]", ".0.")
                       .split(".")
                       .filter(x => x)
                 : [];
