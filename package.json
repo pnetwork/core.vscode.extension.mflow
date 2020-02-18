@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -120,7 +120,7 @@
 		"snippets": [
 			{
 				"language": "yaml",
-				"path": "./src/snippets/snippets.json"
+				"path": "./snippets/snippets.json"
 			}
 		]
 	},
