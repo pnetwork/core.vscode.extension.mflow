@@ -1,0 +1,32 @@
+{
+	"mflow: node generator": {
+		"prefix": "nodes.metadata",
+		"body": [ 
+			"metadata:",
+			"  id: '$1'",
+			"    type: action",
+			"    title: '$2'",
+			"    description: '$3'",
+			"    script: ",
+			"      id: $4",
+			"    marvinProperties: ",
+			"      position: ",
+			"       xAxis: $5",
+			"       yAxis: $6"
+		],
+		"description": "node generator"
+	},
+	"mflow: edge generator": {
+		"prefix": "edges.source",
+		"body": [
+			"source: '$1'",
+			"  target: '$2'",
+			"  metadata:",
+			"    binding:",
+			"    - property: $3",
+			"      value: $4",
+			"      type: $5"
+		],
+		"description": "edge generator"
+	}
+}

@@ -116,7 +116,13 @@
 					"group": "navigation@-2"
 				}
 			]
-		}
+		},
+		"snippets": [
+			{
+				"language": "yaml",
+				"path": "./src/snippets/snippets.json"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -126,8 +132,7 @@
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
-	"devDependencies": {
-	},
+	"devDependencies": {},
 	"dependencies": {
 		"@types/js-yaml": "^3.12.2",
 		"eslint-config-prettier": "^6.10.0",
