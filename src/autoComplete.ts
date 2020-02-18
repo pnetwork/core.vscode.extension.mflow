@@ -25,15 +25,23 @@ export function getWfUri(rootPath: string): string {
  * @param rootPath: workspeace root.
  * @param document: workflow templaye graph content.
  */
-export function getWfGraph(rootPath: string, document: vscode.TextDocument): any | undefined {
-    const wfUri = getWfUri(rootPath);
-    if (wfUri && document.languageId === "yaml" && document.uri.scheme === "file" && document.fileName === wfUri) {
+export function updateWfYamlAndWfUri(rootPath: string, document: vscode.TextDocument): any | undefined {
+    const result = { wfUri: "", wfYaml: "" };
+    const manifestFileName = path.join(rootPath, "manifest.json");
+    const manifestFS = fs.readFileSync(manifestFileName, "utf8");
+    const manifest = yaml.safeLoad(manifestFS, { schema: yaml.JSON_SCHEMA });
+    const wfUri = manifest.entry ? manifest.entry : undefined;
+    if (wfUri) {
+        result.wfUri = path.join(rootPath, wfUri);
+    }
+    if (wfUri && (document.fileName === wfUri || document.fileName === "manifest.json")) {
         try {
-            return yaml.safeLoad(fs.readFileSync(wfUri, "utf8"));
+            result.wfYaml = yaml.safeLoad(fs.readFileSync(wfUri, "utf8"));
         } catch (e) {
-            return undefined;
+            // return undefined;
         }
     }
+    return result;
 }
 
 /**

@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { window } from "vscode";
 import { createInputBox, createQuickPick, getMFlowPath, createBrowseFolder } from "./basicInput";
 import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
-import { autoComplete, getWfGraph, getWfUri } from "./autoComplete";
+import { autoComplete, updateWfYamlAndWfUri } from "./autoComplete";
 
 let ouputChannel: vscode.OutputChannel;
 let mflowPath: string;
@@ -136,6 +136,21 @@ function autoCompleteItems(): vscode.Disposable {
     );
 }
 
+function changeWf(document: vscode.TextDocument): Record<string, any> | undefined {
+    const lang = document.languageId;
+    if (!(rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) {
+        return;
+    }
+    if (lang === "json" && document.fileName !== "manifest.json") {
+        return;
+    }
+    const wf = updateWfYamlAndWfUri(rootPath, document);
+    if (wf.wfUri && wf.wfYaml) {
+        wfYaml = wf.wfYaml;
+        wfUri = wf.wfUri;
+    }
+}
+
 export function activate(c: vscode.ExtensionContext): void {
     ouputChannel = window.createOutputChannel("mflow ouput");
     mflowPath = getMFlowPath();
@@ -165,17 +180,7 @@ export function activate(c: vscode.ExtensionContext): void {
     c.subscriptions.concat(cmdList);
 
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-        if (!rootPath) {
-            return;
-        }
-        const wf = getWfGraph(rootPath, document);
-        if (wf) {
-            wfYaml = wf;
-            const wfPath = getWfUri(rootPath);
-            if (wfPath) {
-                wfUri = wfPath;
-            }
-        }
+        changeWf(document);
     });
 
     vscode.workspace.onDidChangeConfiguration(() => {

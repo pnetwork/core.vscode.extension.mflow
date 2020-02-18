@@ -25,6 +25,7 @@
 		"onCommand:mflow.pack",
 		"onCommand:mflow.deploy",
 		"onLanguage:yaml",
+		"onLanguage:json",
 		"onDidSaveTextDocument"
 	],
 	"main": "./out/extension.js",
