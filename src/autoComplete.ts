@@ -34,9 +34,9 @@ export function updateWfYamlAndWfUri(rootPath: string, document: vscode.TextDocu
     if (wfUri) {
         result.wfUri = path.join(rootPath, wfUri);
     }
-    if (wfUri && (document.fileName === wfUri || document.fileName === "manifest.json")) {
+    if (wfUri && (document.fileName === result.wfUri || document.fileName === "manifest.json")) {
         try {
-            result.wfYaml = yaml.safeLoad(fs.readFileSync(wfUri, "utf8"));
+            result.wfYaml = yaml.safeLoad(fs.readFileSync(result.wfUri, "utf8"));
         } catch (e) {
             // return undefined;
         }

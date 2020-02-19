@@ -1,6 +1,6 @@
-import * as assert from "assert";
+import assert from "assert";
 import { suite, test } from "mocha";
-import * as vscode from "vscode";
+import vscode from "vscode";
 
 async function waitForExtension(ms: number): Promise<NodeJS.Timeout> {
     return new Promise(resolve => setTimeout(resolve, ms));

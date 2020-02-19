@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as assert from "assert";
+import assert from "assert";
 import { suite, test, setup } from "mocha";
-import * as vscode from "vscode";
+import vscode from "vscode";
 import { ScriptAutoComplete, EventAutoComplete } from "../../autoComplete";
-import * as yaml from "js-yaml";
-import * as os from "os";
-import * as path from "path";
-import * as fs from "fs";
+import yaml from "js-yaml";
+import os from "os";
+import path from "path";
+import fs from "fs";
 
 async function waitForExtension(ms: number): Promise<NodeJS.Timeout> {
     return new Promise(resolve => setTimeout(resolve, ms));
