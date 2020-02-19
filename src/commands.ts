@@ -180,7 +180,7 @@ export class MFlowCommand {
         if (!this.verifyRootPath()) {
             return;
         }
-        this.sendCommandtoTerminal(`${this.mflowPath} down`);
+        this.sendCommandtoTerminal(`${this.mflowPath} down -a`);
     }
 
     /**
