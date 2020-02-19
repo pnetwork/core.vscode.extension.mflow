@@ -1,6 +1,6 @@
 import { window, workspace, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
-import * as child from "child_process";
-import * as path from "path";
+import child from "child_process";
+import path from "path";
 import {
     activeTerminalwithConfig,
     createQuickPick,

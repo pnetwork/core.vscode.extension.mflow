@@ -1,7 +1,4 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from "vscode";
-import { window } from "vscode";
+import vscode from "vscode";
 import { createInputBox, createQuickPick, getMFlowPath, createBrowseFolder } from "./basicInput";
 import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
 import { autoComplete, updateWfYamlAndWfUri } from "./autoComplete";
@@ -103,7 +100,7 @@ function packCmd(): vscode.Disposable {
 
 function deployCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.deploy", async () => {
-        const quickPick = window.createQuickPick();
+        const quickPick = vscode.window.createQuickPick();
         quickPick.items = Object.values(PackTypes).map(label => ({ label }));
 
         await createQuickPick(
@@ -152,7 +149,7 @@ function changeWf(document: vscode.TextDocument): Record<string, any> | undefine
 }
 
 export function activate(c: vscode.ExtensionContext): void {
-    ouputChannel = window.createOutputChannel("mflow ouput");
+    ouputChannel = vscode.window.createOutputChannel("mflow ouput");
     mflowPath = getMFlowPath();
     rootPath = vscode.workspace.rootPath || "";
     mflowCmd = new MFlowCommand(mflowPath, rootPath, ouputChannel);

@@ -4,7 +4,7 @@
  *-------------------------------------------------------------------------------------------- */
 
 import { window, OpenDialogOptions, InputBoxOptions, Terminal, workspace, OutputChannel, QuickPickItem } from "vscode";
-import * as child from "child_process";
+import child from "child_process";
 
 /**
  * Create input box.

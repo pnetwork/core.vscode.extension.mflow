@@ -1,9 +1,9 @@
-import * as vscode from "vscode";
-import * as yaml from "js-yaml";
-import * as path from "path";
-import * as fs from "fs";
-import * as os from "os";
-import * as glob from "glob";
+import vscode from "vscode";
+import yaml from "js-yaml";
+import path from "path";
+import fs from "fs";
+import os from "os";
+import glob from "glob";
 
 /**
  * Get file url of workflow graph yaml
