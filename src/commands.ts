@@ -68,13 +68,14 @@ export class MFlowCommand {
      * @param scriptPath: script project path. i.e. /User/xxx/mflowProject/src/blcks/balances
      */
     private getScriptTypeFromPath(scriptPath?: string): string | undefined {
-        if (scriptPath) {
-            const scriptType = Object.values(ScriptTypes).filter((a: string) =>
-                scriptPath.startsWith(path.join(this.rootPath, "src", a))
-            );
-            if (scriptType && scriptType.length > 0) {
-                return scriptType[0];
-            }
+        if (!scriptPath) {
+            return;
+        }
+        const scriptType = Object.values(ScriptTypes).filter((a: string) =>
+            scriptPath.startsWith(path.join(this.rootPath, "src", a))
+        );
+        if (scriptType && scriptType.length > 0) {
+            return scriptType[0];
         }
     }
 

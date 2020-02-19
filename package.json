@@ -26,10 +26,19 @@
 		"onCommand:mflow.deploy",
 		"onLanguage:yaml",
 		"onLanguage:json",
-		"onDidSaveTextDocument"
+		"onDidSaveTextDocument",
+		"onView:nodeDependencies"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"views": {
+		  "explorer": [
+			{
+			  "id": "nodeDependencies",
+			  "name": "Node Dependencies"
+			}
+		  ]
+		},
 		"configuration": {
 			"type": "object",
 			"title": "Pentium mflow",

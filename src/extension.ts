@@ -4,7 +4,6 @@ import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
 import { autoComplete, updateWfYamlAndWfUri } from "./autoComplete";
 
 let ouputChannel: vscode.OutputChannel;
-let mflowPath: string;
 let rootPath: string;
 let wfUri: string;
 let wfYaml: any;
@@ -150,7 +149,7 @@ function changeWf(document: vscode.TextDocument): Record<string, any> | undefine
 
 export function activate(c: vscode.ExtensionContext): void {
     ouputChannel = vscode.window.createOutputChannel("mflow ouput");
-    mflowPath = getMFlowPath();
+    const mflowPath = getMFlowPath();
     rootPath = vscode.workspace.rootPath || "";
     mflowCmd = new MFlowCommand(mflowPath, rootPath, ouputChannel);
 
@@ -181,7 +180,7 @@ export function activate(c: vscode.ExtensionContext): void {
     });
 
     vscode.workspace.onDidChangeConfiguration(() => {
-        mflowPath = getMFlowPath();
+        mflowCmd.mflowPath = getMFlowPath();
     });
 }
 
