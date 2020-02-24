@@ -63,20 +63,3 @@ export function getGlobalConfig(): any {
         schema: yaml.JSON_SCHEMA
     });
 }
-
-export function getConfScriptPathPattern(rootPath: string, scriptIds: string[]): string {
-    const config = getConfig(rootPath);
-    const gbConfig = getGlobalConfig();
-    const basePath: string[] = [];
-    let x = config.blcks_code_base || gbConfig.blcks_code_base;
-    if (x) basePath.push(x + "*");
-    x = config.ansible_code_base || gbConfig.ansible_code_base;
-    if (x) basePath.push(x + "*/schema");
-    x = config.shell_script_base || gbConfig.shell_script_base;
-    if (x) basePath.push(x + "*");
-    const scriptPath = basePath.join(",");
-    const sciprtPattern = scriptIds.length > 1 ? "{" + scriptIds.toString().toLowerCase() + "}" : scriptIds;
-    const pattern = `{${scriptPath}}/${sciprtPattern}.para`;
-
-    return pattern;
-}
