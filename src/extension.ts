@@ -182,7 +182,6 @@ export function activate(c: vscode.ExtensionContext): void {
     ouputChannel = vscode.window.createOutputChannel("mflow ouput");
     const mflowPath = getMFlowPath();
     rootPath = vscode.workspace.rootPath || "";
-    if (!rootPath) return;
     mflowCmd = new MFlowCommand(mflowPath, rootPath, ouputChannel);
 
     const cmdList = [

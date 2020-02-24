@@ -53,9 +53,15 @@ export class MFlowCommand {
     }
 
     /**
-     * Get scripts from wf template
+     * Get scripts from wf template.
+     * i.e.[{
+     * "scriptId": "callservice",
+     * "scriptType": "ansible/blcks/shell",
+     * "scriptPath": "User/xxx/blcks.python.wf.callservice/",
+     * "scriptSchemaPath": "User/xxx/blcks.python.wf.callservice/callservice.para"
+     * }]
      */
-    public getScriptsFromWfTemplate(): any[] {
+    private getScriptsFromWfTemplate(): any[] {
         const buffer = child.execFileSync(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath });
         let result: any;
         try {
@@ -89,9 +95,7 @@ export class MFlowCommand {
      * @param commands: commands.
      */
     private sendCommandtoTerminal(...commands: string[]): void {
-        if (!(commands && commands.length > 0)) {
-            throw Error("commands mush has value.");
-        }
+        if (!(commands && commands.length > 0)) throw Error("commands mush has value.");
         const terminal = activeTerminalwithConfig();
         for (const i of commands) {
             terminal.sendText(i);
@@ -126,9 +130,7 @@ export class MFlowCommand {
      * @param scriptName: the script name.
      */
     public async createScript(scriptType: ScriptTypes, scriptName: string): Promise<void> {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         const openFile = execCommandCallback(() => {
             const uu = Uri.parse(path.join(this.rootPath, "src", scriptType, scriptName, `${scriptName}.para`));
             commands.executeCommand("vscode.open", uu);
@@ -141,9 +143,7 @@ export class MFlowCommand {
      * @param scriptId: might be the scriptId/scriptId with version/all.
      */
     public installScript(scriptId: string): void {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         scriptId = scriptId === "*" ? "" : scriptId;
         this.sendCommandtoTerminal(`${this.mflowPath} install ${scriptId}`);
     }
@@ -160,9 +160,7 @@ export class MFlowCommand {
      * @param scriptId: script id.
      */
     public uninstallScript(scriptId: string): void {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         this.sendCommandtoTerminal(`${this.mflowPath} uninstall ${scriptId}`);
     }
 
@@ -170,9 +168,7 @@ export class MFlowCommand {
      * Up the script, router, enviroment containers
      */
     public up(): void {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         this.sendCommandtoTerminal(`${this.mflowPath} up`);
     }
 
@@ -180,9 +176,7 @@ export class MFlowCommand {
      * Auto up containers and execute the wf template graph.yml.
      */
     public run(): void {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         this.sendCommandtoTerminal(`${this.mflowPath} run --auto`);
     }
 
@@ -190,9 +184,7 @@ export class MFlowCommand {
      * Down the script, router, enviroment containers.
      */
     public down(): void {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         this.sendCommandtoTerminal(`${this.mflowPath} down -a`);
     }
 
@@ -201,9 +193,7 @@ export class MFlowCommand {
      * @param scriptId: the script id or all.
      */
     public logs(scriptId: string): void {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         scriptId = scriptId === "*" ? "" : scriptId;
         this.sendCommandtoTerminal(`${this.mflowPath} logs ${scriptId}`);
     }
@@ -232,9 +222,7 @@ export class MFlowCommand {
      * @param isOverwrite: is overwirte exists scripts/wf templates on marvel
      */
     public async deploy(packType: QuickPickItem): Promise<void> {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         const overwirteQ = "Do you want to overwrite existing script on Marvin ? ";
         if (packType.label === PackTypes.SCRIPT) {
             const scripts = this.getScriptQuickPickItem();
