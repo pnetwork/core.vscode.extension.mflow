@@ -8,7 +8,7 @@ import yaml from "js-yaml";
 
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
-let wfUri: string;
+let wfUri: string | undefined;
 let wfYaml: any;
 let mflowCmd: MFlowCommand;
 let wfScript: any;
@@ -130,6 +130,7 @@ function autoCompleteItems(): vscode.Disposable {
         {
             async provideCompletionItems(document, position) {
                 await vscode.commands.executeCommand("workbench.action.files.save");
+                if (!wfUri || !wfYaml || !rootPath) return;
                 const item = await autoComplete(document, position, rootPath, wfYaml, wfUri, wfScript)
                     .then(function(response: any) {
                         return response;
@@ -181,6 +182,7 @@ export function activate(c: vscode.ExtensionContext): void {
     ouputChannel = vscode.window.createOutputChannel("mflow ouput");
     const mflowPath = getMFlowPath();
     rootPath = vscode.workspace.rootPath || "";
+    if (!rootPath) return;
     mflowCmd = new MFlowCommand(mflowPath, rootPath, ouputChannel);
 
     const cmdList = [

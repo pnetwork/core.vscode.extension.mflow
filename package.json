@@ -73,6 +73,10 @@
 				"title": "mflow: Create Shell"
 			},
 			{
+				"command": "mflow.show.installed",
+				"title": "mflow: List Installed Scripts"
+			},
+			{
 				"command": "mflow.install.script",
 				"title": "mflow: Install Script"
 			},

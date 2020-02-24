@@ -48,6 +48,9 @@ export class ScriptAutoComplete extends AutoComplete {
             if (!scriptId) throw Error("has no script id");
             const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
             if (script.length < 1) throw Error("has no script id");
+            if (!fs.existsSync(script[0].scriptSchemaPath)) {
+                return;
+            }
             return yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
         }
         return undefined;
@@ -110,6 +113,9 @@ export class EventAutoComplete extends AutoComplete {
         let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
         if (eventPath) {
             eventPath = path.join(this.rootPath, eventPath);
+            if (!fs.existsSync(eventPath)) {
+                return;
+            }
             return yaml.safeLoad(fs.readFileSync(eventPath, "utf8"));
         }
         return undefined;
