@@ -1,6 +1,7 @@
-import { window, workspace, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
+import { window, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
 import child from "child_process";
 import path from "path";
+import yaml from "js-yaml";
 import {
     activeTerminalwithConfig,
     createQuickPick,
@@ -31,7 +32,8 @@ export enum ScriptTypes {
  * mflow Commands
  */
 export class MFlowCommand {
-    noRootPatgErrorMsg = "Please create or open mflow project first!";
+    readonly noRootPathErrorMsg = "Please create or open mflow project first!";
+    readonly scriptInstalledConf = "packages.json";
 
     constructor(public mflowPath: string, public rootPath: string, public output: OutputChannel) {
         this.mflowPath = mflowPath;
@@ -44,39 +46,42 @@ export class MFlowCommand {
      */
     public verifyRootPath(): boolean {
         if (!this.rootPath) {
-            window.showErrorMessage(this.noRootPatgErrorMsg);
+            window.showErrorMessage(this.noRootPathErrorMsg);
             return false;
         }
         return true;
     }
 
     /**
-     * Get scripts in workspace/src folder
+     * Get scripts from wf template
      */
-    private async getSrcScriptPath(): Promise<any[]> {
-        const files: any = await workspace.findFiles("src/**/*.para");
-        const items: any[] = [];
-        for (const i of files) {
-            const p = path.parse(i.path);
-            items.push({ label: p.name, description: path.dirname(i.path) });
+    public getScriptsFromWfTemplate(): any[] {
+        const buffer = child.execFileSync(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath });
+        let result: any;
+        try {
+            result = yaml.safeLoad(buffer.toString());
+        } catch (e) {
+            throw Error("Workflow template yaml load fail!");
         }
-        return items;
+        return result;
     }
 
     /**
-     * Get script types from script project path
-     * @param scriptPath: script project path. i.e. /User/xxx/mflowProject/src/blcks/balances
+     * Get scripts in workspace/src folder
      */
-    private getScriptTypeFromPath(scriptPath?: string): string | undefined {
-        if (!scriptPath) {
-            return;
+    public getScriptQuickPickItem(): any[] {
+        const items: any[] = [];
+        try {
+            const result = this.getScriptsFromWfTemplate();
+            if (result) {
+                for (const i of result) {
+                    items.push({ label: i.scriptId, detail: i.scriptPath, description: i.scriptType });
+                }
+            }
+        } catch (e) {
+            window.showErrorMessage("Please check workflow template is in the right format!");
         }
-        const scriptType = Object.values(ScriptTypes).filter((a: string) =>
-            scriptPath.startsWith(path.join(this.rootPath, "src", a))
-        );
-        if (scriptType && scriptType.length > 0) {
-            return scriptType[0];
-        }
+        return items;
     }
 
     /**
@@ -108,11 +113,11 @@ export class MFlowCommand {
      */
     public async createProject(projectName: string, projectPath: string): Promise<void> {
         const mflowPath = getMFlowPath();
-        const openFolder = execCommandCallback(this.output, () => {
+        const openFolder = execCommandCallback(() => {
             const workspaceUri: Uri = Uri.parse(projectPath + "/" + projectName);
             commands.executeCommand("vscode.openFolder", workspaceUri);
-        });
-        child.execFile(`${mflowPath}`, ["create", `${projectName}`], { cwd: projectPath }, openFolder);
+        }, this.output);
+        child.execFile(`${mflowPath}`, ["create", `${projectName}`, "-y"], { cwd: projectPath }, openFolder);
     }
 
     /**
@@ -124,10 +129,10 @@ export class MFlowCommand {
         if (!this.verifyRootPath()) {
             return;
         }
-        const openFile = execCommandCallback(this.output, () => {
+        const openFile = execCommandCallback(() => {
             const uu = Uri.parse(path.join(this.rootPath, "src", scriptType, scriptName, `${scriptName}.para`));
             commands.executeCommand("vscode.open", uu);
-        });
+        }, this.output);
         child.execFile(`${this.mflowPath}`, [scriptType, "create", `${scriptName}`], { cwd: this.rootPath }, openFile);
     }
 
@@ -141,6 +146,13 @@ export class MFlowCommand {
         }
         scriptId = scriptId === "*" ? "" : scriptId;
         this.sendCommandtoTerminal(`${this.mflowPath} install ${scriptId}`);
+    }
+
+    /**
+     * Get installed script list.
+     */
+    public getInstalledScript(): void {
+        this.sendCommandtoTerminal(`${this.mflowPath} install --list`);
     }
 
     /**
@@ -193,23 +205,21 @@ export class MFlowCommand {
             return;
         }
         scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendCommandtoTerminal(`${this.mflowPath} logs -v ${scriptId}`);
+        this.sendCommandtoTerminal(`${this.mflowPath} logs ${scriptId}`);
     }
 
     /**
      * Pack the project depend on packType.
-     * @param packType: might be the mflow project/only workflow/script.
      */
     public async pack(packType: QuickPickItem): Promise<void> {
-        if (!this.verifyRootPath()) {
-            return;
-        }
+        if (!this.verifyRootPath()) return;
         if (packType.label === PackTypes.SCRIPT) {
-            const scripts = await this.getSrcScriptPath();
+            const scripts = this.getScriptQuickPickItem();
             await createQuickPick(scripts, scriptSelect => {
-                const scriptPath = scriptSelect.description;
-                const scriptType = this.getScriptTypeFromPath(scriptPath);
-                this.sendCommandtoTerminal(`cd ${scriptPath}`, `${this.mflowPath} ${scriptType} pack`);
+                if (!scriptSelect) return;
+                const scriptPath = scriptSelect.detail;
+                const scriptType = scriptSelect.description;
+                this.sendCommandtoTerminal(`${this.mflowPath} ${scriptType} pack -p ${scriptPath}`);
             });
         } else {
             const packTartget = packType.label === PackTypes.ALL ? "--all" : "";
@@ -227,23 +237,19 @@ export class MFlowCommand {
         }
         const overwirteQ = "Do you want to overwrite existing script on Marvin ? ";
         if (packType.label === PackTypes.SCRIPT) {
-            const scripts = await this.getSrcScriptPath();
+            const scripts = this.getScriptQuickPickItem();
             await createQuickPick(scripts, async scriptSelect => {
-                const scriptPath = scriptSelect.description;
-                const scriptType = this.getScriptTypeFromPath(scriptPath);
+                const scriptPath = scriptSelect.detail;
+                const scriptType = scriptSelect.description;
                 let isOverwrite = await createInputBox(overwirteQ, "Y/N");
-                if (!isOverwrite) {
-                    return;
-                }
+                if (!isOverwrite) return;
                 isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-                this.sendCommandtoTerminal(`cd ${scriptPath}`, `${this.mflowPath} ${scriptType} deploy ${isOverwrite}`);
+                this.sendCommandtoTerminal(`${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath}`);
             });
         } else {
             const packtype = packType.label === PackTypes.ALL ? "-a" : "";
             let isOverwrite = await createInputBox(overwirteQ, "Y/N");
-            if (!isOverwrite) {
-                return;
-            }
+            if (!isOverwrite) return;
             isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
             this.sendCommandtoTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);
         }

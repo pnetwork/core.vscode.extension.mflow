@@ -1,13 +1,17 @@
 import vscode from "vscode";
-import { createInputBox, createQuickPick, getMFlowPath, createBrowseFolder } from "./basicInput";
+import { createInputBox, createQuickPick, getMFlowPath, createBrowseFolder, execCommandCallback } from "./basicInput";
 import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
-import { autoComplete, updateWfYamlAndWfUri } from "./autoComplete";
+import { autoComplete } from "./autoComplete";
+import { getWfUri, getWfYaml } from "./path";
+import child from "child_process";
+import yaml from "js-yaml";
 
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
 let wfUri: string;
 let wfYaml: any;
 let mflowCmd: MFlowCommand;
+let wfScript: any;
 
 function showVersionCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.show.version", () => {
@@ -51,6 +55,13 @@ function installScriptCmd(): vscode.Disposable {
         mflowCmd.installScript(scriptId);
     });
 }
+
+function showInstalledScriptCmd(): vscode.Disposable {
+    return vscode.commands.registerCommand("mflow.show.installed", () => {
+        mflowCmd.getInstalledScript();
+    });
+}
+
 function uninstallScriptCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.uninstall.script", async () => {
         const scriptId = await createInputBox("Please enter script id: ", "notification");
@@ -91,7 +102,9 @@ function logsCmd(): vscode.Disposable {
 function packCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.pack", async () => {
         const items = Object.values(PackTypes).map(label => ({ label }));
+        await vscode.commands.executeCommand("workbench.action.files.save");
         await createQuickPick(items, async selection => {
+            if (!selection) return;
             await mflowCmd.pack(selection);
         });
     });
@@ -117,7 +130,7 @@ function autoCompleteItems(): vscode.Disposable {
         {
             async provideCompletionItems(document, position) {
                 await vscode.commands.executeCommand("workbench.action.files.save");
-                const item = await autoComplete(document, position, rootPath, wfYaml, wfUri)
+                const item = await autoComplete(document, position, rootPath, wfYaml, wfUri, wfScript)
                     .then(function(response: any) {
                         return response;
                     })
@@ -132,19 +145,36 @@ function autoCompleteItems(): vscode.Disposable {
     );
 }
 
-function changeWf(document: vscode.TextDocument): Record<string, any> | undefined {
+function reloadWfYamlbyWfUri(document: vscode.TextDocument, mflowPath: string): Record<string, any> | undefined {
     const lang = document.languageId;
-    if (!(rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) {
-        return;
+    if (!(rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
+    if (lang === "json") {
+        if (document.fileName !== "manifest.json") return;
+        const wfUriNew = getWfUri(rootPath);
+        wfUri = wfUriNew || wfUri;
+    } else {
+        if (!(wfUri && document.fileName === wfUri)) return;
+        const wfYamlNew = getWfYaml(wfUri);
+        wfYaml = wfYamlNew || wfYaml;
+        if (!wfYaml) return;
+        const openFile = execCommandCallback(stdout => {
+            if (!stdout) return;
+            wfScript = yaml.safeLoad(stdout.toString());
+        });
+        child.execFile(`${mflowPath}`, ["showscripts"], { cwd: rootPath }, openFile);
     }
-    if (lang === "json" && document.fileName !== "manifest.json") {
-        return;
-    }
-    const wf = updateWfYamlAndWfUri(rootPath, document);
-    if (wf.wfUri && wf.wfYaml) {
-        wfYaml = wf.wfYaml;
-        wfUri = wf.wfUri;
-    }
+}
+
+function initWfYamlAndWfUri(mflowPath: string): void {
+    wfUri = getWfUri(rootPath);
+    if (!wfUri) return;
+    wfYaml = getWfYaml(wfUri);
+    if (!wfYaml) return;
+    const openFile = execCommandCallback(stdout => {
+        if (!stdout) return;
+        wfScript = yaml.safeLoad(stdout.toString());
+    });
+    child.execFile(`${mflowPath}`, ["showscripts"], { cwd: rootPath }, openFile);
 }
 
 export function activate(c: vscode.ExtensionContext): void {
@@ -156,6 +186,7 @@ export function activate(c: vscode.ExtensionContext): void {
     const cmdList = [
         showVersionCmd(),
         createProjectCmd(),
+        showInstalledScriptCmd(),
         installScriptCmd(),
         uninstallScriptCmd(),
         upCmd(),
@@ -175,13 +206,11 @@ export function activate(c: vscode.ExtensionContext): void {
 
     c.subscriptions.concat(cmdList);
 
-    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-        changeWf(document);
-    });
-
+    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => reloadWfYamlbyWfUri(document, mflowPath));
     vscode.workspace.onDidChangeConfiguration(() => {
         mflowCmd.mflowPath = getMFlowPath();
     });
+    initWfYamlAndWfUri(mflowPath);
 }
 
 // this method is called when your extension is deactivated

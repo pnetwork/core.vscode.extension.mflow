@@ -39,7 +39,15 @@ suite("mflow: Auto Complete Test", function() {
     test("script auto complete check", async function() {
         const srcPath = path.join(__dirname, `${mockBasePath}/graph.yml`);
         const wfYaml = yaml.safeLoad(fs.readFileSync(srcPath, "utf8"));
-        const autoComplete = new ScriptAutoComplete(os.homedir(), wfYaml, "");
+        const mockScript = [
+            {
+                scriptId: "balances",
+                scriptType: "blcks",
+                scriptPath: "/xxx/blcks.python.account.balances/handler",
+                scriptSchemaPath: path.join(__dirname, mockBasePath, "balances.para")
+            }
+        ];
+        const autoComplete = new ScriptAutoComplete(os.homedir(), wfYaml, "", mockScript);
         let result = await autoComplete.getCompletionItems("3", []);
         assert.equal(result.length, 5);
         let mustHaveOptions = ["balances_result", "count", "accounts", "exception", "result"];

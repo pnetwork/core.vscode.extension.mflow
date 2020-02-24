@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.2",
+	"version": "0.0.4",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -16,6 +16,7 @@
 		"onCommand:mflow.blcks.create",
 		"onCommand:mflow.ansible.create",
 		"onCommand:mflow.shell.create",
+		"onCommand:mflow.show.installed",
 		"onCommand:mflow.install.script",
 		"onCommand:mflow.uninstall.script",
 		"onCommand:mflow.up",

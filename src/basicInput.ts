@@ -1,8 +1,3 @@
-/* ---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *-------------------------------------------------------------------------------------------- */
-
 import { window, OpenDialogOptions, InputBoxOptions, Terminal, workspace, OutputChannel, QuickPickItem } from "vscode";
 import child from "child_process";
 
@@ -59,12 +54,12 @@ export async function createBrowseFolder(): Promise<string | undefined> {
 
 /**
  * Execute command callback function
- * @param mflowOuputChannel: the output channel of mflow.
  * @param execFunc: execute call back function after log result on mflowOuputChannel.
+ * @param mflowOuputChannel: the output channel of mflow.
  */
 export function execCommandCallback(
-    mflowOuputChannel: OutputChannel,
-    execFunc: (stdout?: string) => void
+    execFunc: (stdout?: string) => void,
+    mflowOuputChannel?: OutputChannel
 ): (error: child.ExecException | null, stdout: string, stderr: string) => void {
     return function(error: child.ExecException | null, stdout: string, stderr: string): void {
         if (error) {
@@ -72,9 +67,13 @@ export function execCommandCallback(
             throw error;
         }
         if (stderr) {
-            mflowOuputChannel.appendLine(stderr);
+            if (mflowOuputChannel) {
+                mflowOuputChannel.appendLine(stderr);
+            }
         } else if (stdout) {
-            mflowOuputChannel.appendLine(stdout);
+            if (mflowOuputChannel) {
+                mflowOuputChannel.appendLine(stdout);
+            }
             execFunc(stdout);
         }
     };

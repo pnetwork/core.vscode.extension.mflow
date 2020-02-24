@@ -2,47 +2,7 @@ import vscode from "vscode";
 import yaml from "js-yaml";
 import path from "path";
 import fs from "fs";
-import os from "os";
-import glob from "glob";
-
-/**
- * Get file url of workflow graph yaml
- * @param rootPath: workspeace root.
- */
-export function getWfUri(rootPath: string): string {
-    const manifestFileName = path.join(rootPath, "manifest.json");
-    const manifestFS = fs.readFileSync(manifestFileName, "utf8");
-    const manifest = yaml.safeLoad(manifestFS, { schema: yaml.JSON_SCHEMA });
-    let wfUri = manifest.entry ? manifest.entry : "";
-    if (wfUri) {
-        wfUri = path.join(rootPath, wfUri);
-    }
-    return wfUri;
-}
-
-/**
- * Load workflow template graph.
- * @param rootPath: workspeace root.
- * @param document: workflow templaye graph content.
- */
-export function updateWfYamlAndWfUri(rootPath: string, document: vscode.TextDocument): any | undefined {
-    const result = { wfUri: "", wfYaml: "" };
-    const manifestFileName = path.join(rootPath, "manifest.json");
-    const manifestFS = fs.readFileSync(manifestFileName, "utf8");
-    const manifest = yaml.safeLoad(manifestFS, { schema: yaml.JSON_SCHEMA });
-    const wfUri = manifest.entry ? manifest.entry : undefined;
-    if (wfUri) {
-        result.wfUri = path.join(rootPath, wfUri);
-    }
-    if (wfUri && (document.fileName === result.wfUri || document.fileName === "manifest.json")) {
-        try {
-            result.wfYaml = yaml.safeLoad(fs.readFileSync(result.wfUri, "utf8"));
-        } catch (e) {
-            // return undefined;
-        }
-    }
-    return result;
-}
+import { getConfig, getGlobalConfig } from "./path";
 
 /**
  * The absctract auto complete class.
@@ -55,12 +15,8 @@ abstract class AutoComplete {
         this.rootPath = rootPath;
         this.wfYaml = wfYaml;
         this.wfUri = wfUri;
-        this.config = yaml.safeLoad(fs.readFileSync(path.join(this.rootPath, ".mflow", "config.json"), "utf8"), {
-            schema: yaml.JSON_SCHEMA
-        });
-        this.gbConfig = yaml.safeLoad(fs.readFileSync(path.join(os.homedir(), ".mflow", "config.json"), "utf8"), {
-            schema: yaml.JSON_SCHEMA
-        });
+        this.config = getConfig(this.rootPath);
+        this.gbConfig = getGlobalConfig();
     }
 
     protected abstract getSchemaYaml(nodeId: string): any;
@@ -76,41 +32,29 @@ abstract class AutoComplete {
  * Script auto Complete
  */
 export class ScriptAutoComplete extends AutoComplete {
+    constructor(public rootPath: string, public wfYaml: any, public wfUri: string, public wfScript: any) {
+        super(rootPath, wfYaml, wfUri);
+        this.wfScript = wfScript;
+    }
+
     /**
      * Get the script schema para.
      * @param nodeId: the node id from wf template graph.yaml.
      */
-    protected async getSchemaYaml(nodeId: string): Promise<any> {
+    protected getSchemaYaml(nodeId: string): any {
         const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === nodeId);
         if (scriptMeta && scriptMeta.metadata && scriptMeta.metadata.script) {
             const scriptId = scriptMeta.metadata.script.id;
-            if (!scriptId) {
-                throw Error("has no script id");
-            }
-            let files: any = await vscode.workspace.findFiles("**/" + scriptId + ".para");
-            if (files && files.length > 0) {
-                return yaml.safeLoad(fs.readFileSync(files[0].path, "utf8"));
-            }
-            const blcksBase = this.config.blcks_code_base ? this.config.blcks_code_base : this.gbConfig.blcks_code_base;
-            const ansibleBase = this.config.ansible_code_base
-                ? this.config.ansible_code_base
-                : this.gbConfig.ansible_code_base;
-            const shellBase = this.config.shell_script_base
-                ? this.config.shell_script_base
-                : this.gbConfig.shell_script_base;
-            const ansibleFolder = ansibleBase ? "," + ansibleBase : "";
-            const shellFolder = shellBase ? "," + shellBase : "";
-            const pattern = `{${blcksBase}${ansibleFolder}${shellFolder})}*/${scriptId}.para`;
-            files = glob.sync(pattern);
-            if (files && files.length > 0) {
-                return yaml.safeLoad(fs.readFileSync(files[0], "utf8"));
-            }
+            if (!scriptId) throw Error("has no script id");
+            const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
+            if (script.length < 1) throw Error("has no script id");
+            return yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
         }
         return undefined;
     }
 
     public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
-        const schemaYaml = await this.getSchemaYaml(nodeId);
+        const schemaYaml = this.getSchemaYaml(nodeId);
         if (!schemaYaml) {
             throw Error(`scriptId cannot find.`);
         }
@@ -162,7 +106,7 @@ export class EventAutoComplete extends AutoComplete {
      * Get the Event schema para.
      * @param nodeId: the node id from wf template graph.yaml.
      */
-    protected async getSchemaYaml(): Promise<any> {
+    protected getSchemaYaml(): any {
         let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
         if (eventPath) {
             eventPath = path.join(this.rootPath, eventPath);
@@ -172,7 +116,7 @@ export class EventAutoComplete extends AutoComplete {
     }
 
     public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
-        const eventYaml = await this.getSchemaYaml();
+        const eventYaml = this.getSchemaYaml();
         if (!eventYaml) {
             return [new vscode.CompletionItem("")];
         }
@@ -216,7 +160,8 @@ export async function autoComplete(
     position: vscode.Position,
     rootPath: string,
     wfYaml: any,
-    wfUri: string
+    wfUri: string,
+    wfScript: any
 ): Promise<vscode.CompletionItem[]> {
     if (document.fileName !== wfUri) {
         return [new vscode.CompletionItem("")];
@@ -236,7 +181,7 @@ export async function autoComplete(
         if (lineText[1] === "0") {
             autoComplete = new EventAutoComplete(rootPath, wfYaml, wfUri);
         } else {
-            autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfUri);
+            autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfUri, wfScript);
         }
         return autoComplete.getCompletionItems(lineText[1], lineTexts);
     }
