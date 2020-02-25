@@ -33,14 +33,6 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"views": {
-			"explorer": [
-				{
-					"id": "nodeDependencies",
-					"name": "Node Dependencies"
-				}
-			]
-		},
 		"configuration": {
 			"type": "object",
 			"title": "Pentium mflow",
