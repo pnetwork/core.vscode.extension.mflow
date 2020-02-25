@@ -27,6 +27,7 @@ suite("Extension Test Suite", function() {
             "mflow.show.installed",
             "mflow.install.script",
             "mflow.uninstall.script",
+            "mflow.view.wf",
             "mflow.up",
             "mflow.run",
             "mflow.down",
