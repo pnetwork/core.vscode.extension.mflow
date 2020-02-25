@@ -2,6 +2,7 @@ import { window, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
+import fs from "fs";
 import {
     activeTerminalwithConfig,
     createQuickPick,
@@ -241,5 +242,25 @@ export class MFlowCommand {
             isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
             this.sendCommandtoTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);
         }
+    }
+
+    public buildGraphWebView(): string {
+        child.execFileSync(`${this.mflowPath}`, ["graph"], { cwd: this.rootPath });
+        let img = path.join(this.rootPath, ".mflow", "graph.gv.png");
+        if (!fs.existsSync(img)) return "";
+
+        const diskPath = Uri.file(img);
+        img = diskPath.with({ scheme: "vscode-resource" }).toString();
+        return `<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Cat Coding</title>
+            </head>
+            <body>
+                <img src="${img}" />
+            </body>
+            </html>`;
     }
 }

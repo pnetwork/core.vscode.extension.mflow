@@ -5,6 +5,7 @@ import { autoComplete } from "./autoComplete";
 import { getWfUri, getWfYaml } from "./path";
 import child from "child_process";
 import yaml from "js-yaml";
+import path from "path";
 
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
@@ -124,6 +125,16 @@ function deployCmd(): vscode.Disposable {
     });
 }
 
+function viewWf(): vscode.Disposable {
+    return vscode.commands.registerTextEditorCommand("mflow.view.wf", editor => {
+        if (wfUri !== editor.document.fileName) return;
+
+        const title = wfUri ? path.basename(wfUri) : "graph.yml";
+        const panel = vscode.window.createWebviewPanel("wfGraph", title, vscode.ViewColumn.One);
+        panel.webview.html = mflowCmd.buildGraphWebView();
+    });
+}
+
 function autoCompleteItems(): vscode.Disposable {
     return vscode.languages.registerCompletionItemProvider(
         "yaml",
@@ -150,7 +161,7 @@ function reloadWfYamlbyWfUri(document: vscode.TextDocument, mflowPath: string): 
     const lang = document.languageId;
     if (!(rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
     if (lang === "json") {
-        if (document.fileName !== "manifest.json") return;
+        if (document.fileName !== path.join(rootPath, "manifest.json")) return;
         const wfUriNew = getWfUri(rootPath);
         wfUri = wfUriNew || wfUri;
     } else {
@@ -196,6 +207,7 @@ export function activate(c: vscode.ExtensionContext): void {
         logsCmd(),
         packCmd(),
         deployCmd(),
+        viewWf(),
         autoCompleteItems()
     ];
 
@@ -211,7 +223,16 @@ export function activate(c: vscode.ExtensionContext): void {
     vscode.workspace.onDidChangeConfiguration(() => {
         mflowCmd.mflowPath = getMFlowPath();
     });
+    vscode.window.onDidChangeActiveTextEditor(e => {
+        if (wfUri !== e?.document?.fileName) vscode.commands.executeCommand("setContext", "isWfYaml", false);
+        else vscode.commands.executeCommand("setContext", "isWfYaml", true);
+    });
     initWfYamlAndWfUri(mflowPath);
+    if (vscode.window.activeTextEditor?.document.fileName === wfUri) {
+        vscode.commands.executeCommand("setContext", "isWfYaml", true);
+    } else {
+        vscode.commands.executeCommand("setContext", "isWfYaml", false);
+    }
 }
 
 // this method is called when your extension is deactivated

@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -25,20 +25,21 @@
 		"onCommand:mflow.logs",
 		"onCommand:mflow.pack",
 		"onCommand:mflow.deploy",
+		"onCommand:mflow.view.wf",
 		"onLanguage:yaml",
 		"onLanguage:json",
-		"onDidSaveTextDocument",
-		"onView:nodeDependencies"
+		"onView:nodeDependencies",
+		"onWebviewPanel:wfGraph"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"views": {
-		  "explorer": [
-			{
-			  "id": "nodeDependencies",
-			  "name": "Node Dependencies"
-			}
-		  ]
+			"explorer": [
+				{
+					"id": "nodeDependencies",
+					"name": "Node Dependencies"
+				}
+			]
 		},
 		"configuration": {
 			"type": "object",
@@ -115,19 +116,38 @@
 			{
 				"command": "mflow.deploy",
 				"title": "mflow: Deploy to Marvin Url"
+			},
+			{
+				"command": "mflow.view.wf",
+				"title": "View Workflow Template Graph",
+				"enablement": "isWfYaml"
 			}
 		],
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "mflow.view.wf",
+					"when": "false"
+				}
+			],
 			"editor/title": [
 				{
 					"command": "mflow.down",
-					"when": "resourceLangId == yaml",
+					"when": "resourceLangId == yaml && isWfYaml",
 					"group": "navigation@-1"
 				},
 				{
 					"command": "mflow.run",
-					"when": "resourceLangId == yaml",
+					"when": "resourceLangId == yaml && isWfYaml",
 					"group": "navigation@-2"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "mflow.view.wf",
+					"when": "resourceLangId == yaml",
+					"group": "6_view",
+					"alt": "mflow.view.wf"
 				}
 			]
 		},
@@ -146,9 +166,18 @@
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
-	"devDependencies": {},
+	"devDependencies": {
+		"@types/graphviz": "0.0.30"
+	},
 	"dependencies": {
+		"@types/glob": "^7.1.1",
 		"@types/js-yaml": "^3.12.2",
+		"@types/mocha": "^7.0.1",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.41.0",
+		"@typescript-eslint/eslint-plugin": "^2.18.0",
+		"@typescript-eslint/parser": "^2.18.0",
+		"eslint": "^6.8.0",
 		"eslint-config-prettier": "^6.10.0",
 		"eslint-config-standard": "^14.1.0",
 		"eslint-plugin-import": "^2.20.1",
@@ -156,16 +185,10 @@
 		"eslint-plugin-prettier": "^3.1.2",
 		"eslint-plugin-promise": "^4.2.1",
 		"eslint-plugin-standard": "^4.0.1",
-		"prettier": "^1.19.1",
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^7.0.1",
-		"@types/node": "^12.11.7",
-		"@types/vscode": "^1.41.0",
-		"@typescript-eslint/eslint-plugin": "^2.18.0",
-		"@typescript-eslint/parser": "^2.18.0",
-		"eslint": "^6.8.0",
 		"glob": "^7.1.6",
+		"graphviz": "0.0.9",
 		"mocha": "^7.0.1",
+		"prettier": "^1.19.1",
 		"typescript": "^3.7.5",
 		"vscode-test": "^1.3.0"
 	}
