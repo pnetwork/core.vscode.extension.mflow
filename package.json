@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -113,11 +113,11 @@
 			},
 			{
 				"command": "mflow.deploy",
-				"title": "mflow: Deploy Already packaged to Marvin Url"
+				"title": "mflow: Deploy Packed Packages to Marvin"
 			},
 			{
 				"command": "mflow.deploy.auto",
-				"title": "mflow: Deploy to Marvin Url."
+				"title": "mflow: Deploy to Marvin"
 			},
 			{
 				"command": "mflow.view.wf",
