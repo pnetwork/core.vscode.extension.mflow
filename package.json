@@ -23,8 +23,10 @@
 		"onCommand:mflow.run",
 		"onCommand:mflow.down",
 		"onCommand:mflow.logs",
+		"onCommand:mflow.build",
 		"onCommand:mflow.pack",
 		"onCommand:mflow.deploy",
+		"onCommand:mflow.deploy.auto",
 		"onCommand:mflow.view.wf",
 		"onLanguage:yaml",
 		"onLanguage:json",
@@ -103,11 +105,19 @@
 			},
 			{
 				"command": "mflow.pack",
-				"title": "mflow: Pack mflow Project"
+				"title": "mflow: Pack"
+			},
+			{
+				"command": "mflow.build",
+				"title": "mflow: Build Push"
 			},
 			{
 				"command": "mflow.deploy",
-				"title": "mflow: Deploy to Marvin Url"
+				"title": "mflow: Deploy Already packaged to Marvin Url"
+			},
+			{
+				"command": "mflow.deploy.auto",
+				"title": "mflow: Deploy to Marvin Url."
 			},
 			{
 				"command": "mflow.view.wf",

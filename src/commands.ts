@@ -200,6 +200,27 @@ export class MFlowCommand {
     }
 
     /**
+     * Build and push the images depend on packType.
+     */
+    public async buildPush(packType: QuickPickItem): Promise<void> {
+        if (!this.verifyRootPath()) return;
+        if (packType.label === PackTypes.SCRIPT) {
+            const scripts = this.getScriptQuickPickItem();
+            await createQuickPick(scripts, scriptSelect => {
+                if (!scriptSelect) return;
+                const scriptPath = scriptSelect.detail;
+                const scriptType = scriptSelect.description;
+                this.sendCommandtoTerminal(
+                    `${this.mflowPath} ${scriptType} build -p ${scriptPath}`,
+                    `${this.mflowPath} ${scriptType} push -p ${scriptPath}`
+                );
+            });
+        } else {
+            this.sendCommandtoTerminal(`${this.mflowPath} build`, `${this.mflowPath} push`);
+        }
+    }
+
+    /**
      * Pack the project depend on packType.
      */
     public async pack(packType: QuickPickItem): Promise<void> {
@@ -213,7 +234,7 @@ export class MFlowCommand {
                 this.sendCommandtoTerminal(`${this.mflowPath} ${scriptType} pack -p ${scriptPath}`);
             });
         } else {
-            const packTartget = packType.label === PackTypes.ALL ? "--all" : "";
+            const packTartget = packType.label === PackTypes.ALL ? "-a" : "";
             this.sendCommandtoTerminal(`${this.mflowPath} pack ${packTartget}`);
         }
     }
@@ -221,8 +242,9 @@ export class MFlowCommand {
     /**
      * Deploy the wf template and script from pack()
      * @param isOverwrite: is overwirte exists scripts/wf templates on marvel
+     * @param isAuto: is auto deploy or only deploy.
      */
-    public async deploy(packType: QuickPickItem): Promise<void> {
+    public async deploy(packType: QuickPickItem, isAuto: boolean): Promise<void> {
         if (!this.verifyRootPath()) return;
         const overwirteQ = "Do you want to overwrite existing script on Marvin ? ";
         if (packType.label === PackTypes.SCRIPT) {
@@ -233,14 +255,34 @@ export class MFlowCommand {
                 let isOverwrite = await createInputBox(overwirteQ, "Y/N");
                 if (!isOverwrite) return;
                 isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-                this.sendCommandtoTerminal(`${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath}`);
+                if (isAuto) {
+                    this.sendCommandtoTerminal(
+                        `${this.mflowPath} ${scriptType} build -p ${scriptPath}`,
+                        `${this.mflowPath} ${scriptType} push -p ${scriptPath}`,
+                        `${this.mflowPath} ${scriptType} pack -p ${scriptPath}`,
+                        `${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath}`
+                    );
+                } else {
+                    this.sendCommandtoTerminal(
+                        `${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath}`
+                    );
+                }
             });
         } else {
             const packtype = packType.label === PackTypes.ALL ? "-a" : "";
             let isOverwrite = await createInputBox(overwirteQ, "Y/N");
             if (!isOverwrite) return;
             isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-            this.sendCommandtoTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);
+            if (isAuto) {
+                this.sendCommandtoTerminal(
+                    `${this.mflowPath} build`,
+                    `${this.mflowPath} push`,
+                    `${this.mflowPath} pack ${packtype}`,
+                    `${this.mflowPath} deploy ${packtype} ${isOverwrite}`
+                );
+            } else {
+                this.sendCommandtoTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);
+            }
         }
     }
 

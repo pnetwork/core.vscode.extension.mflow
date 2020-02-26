@@ -100,6 +100,20 @@ function logsCmd(): vscode.Disposable {
         mflowCmd.logs(scriptId);
     });
 }
+
+function buildCmd(): vscode.Disposable {
+    return vscode.commands.registerCommand("mflow.build", async () => {
+        const items = Object.values(PackTypes)
+            .filter(x => x !== PackTypes.WORKFLOW)
+            .map(label => ({ label }));
+        await vscode.commands.executeCommand("workbench.action.files.save");
+        await createQuickPick(items, async selection => {
+            if (!selection) return;
+            await mflowCmd.buildPush(selection);
+        });
+    });
+}
+
 function packCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.pack", async () => {
         const items = Object.values(PackTypes).map(label => ({ label }));
@@ -111,15 +125,15 @@ function packCmd(): vscode.Disposable {
     });
 }
 
-function deployCmd(): vscode.Disposable {
-    return vscode.commands.registerCommand("mflow.deploy", async () => {
+function deployCmd(isAuto: boolean): vscode.Disposable {
+    return vscode.commands.registerCommand(isAuto ? "mflow.deploy.auto" : "mflow.deploy", async () => {
         const quickPick = vscode.window.createQuickPick();
         quickPick.items = Object.values(PackTypes).map(label => ({ label }));
 
         await createQuickPick(
             Object.values(PackTypes).map(label => ({ label })),
             async selection => {
-                await mflowCmd.deploy(selection);
+                await mflowCmd.deploy(selection, isAuto);
             }
         );
     });
@@ -205,8 +219,10 @@ export function activate(c: vscode.ExtensionContext): void {
         runCmd(),
         downCmd(),
         logsCmd(),
+        buildCmd(),
         packCmd(),
-        deployCmd(),
+        deployCmd(false),
+        deployCmd(true),
         viewWf(),
         autoCompleteItems()
     ];
