@@ -257,10 +257,7 @@ export class MFlowCommand {
                 isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
                 if (isAuto) {
                     this.sendCommandtoTerminal(
-                        `${this.mflowPath} ${scriptType} build -p ${scriptPath}`,
-                        `${this.mflowPath} ${scriptType} push -p ${scriptPath}`,
-                        `${this.mflowPath} ${scriptType} pack -p ${scriptPath}`,
-                        `${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath}`
+                        `${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath} --autobuildpush --autopack`
                     );
                 } else {
                     this.sendCommandtoTerminal(
@@ -275,10 +272,7 @@ export class MFlowCommand {
             isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
             if (isAuto) {
                 this.sendCommandtoTerminal(
-                    `${this.mflowPath} build`,
-                    `${this.mflowPath} push`,
-                    `${this.mflowPath} pack ${packtype}`,
-                    `${this.mflowPath} deploy ${packtype} ${isOverwrite}`
+                    `${this.mflowPath} deploy ${packtype} ${isOverwrite} --autobuildpush --autopack`
                 );
             } else {
                 this.sendCommandtoTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);

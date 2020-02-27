@@ -31,8 +31,10 @@ suite("Extension Test Suite", function() {
             "mflow.up",
             "mflow.run",
             "mflow.down",
+            "mflow.build",
             "mflow.logs",
             "mflow.pack",
+            "mflow.deploy.auto",
             "mflow.deploy"
         ];
         const foundArduinoCommands = commands.filter(value => {

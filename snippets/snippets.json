@@ -3,7 +3,6 @@
 		"prefix": "nodes.metadata",
 		"body": [ 
 			"metadata:",
-			"  id: '$1'",
 			"    type: action",
 			"    title: '$2'",
 			"    description: '$3'",
@@ -12,7 +11,8 @@
 			"    marvinProperties: ",
 			"      position: ",
 			"       xAxis: $5",
-			"       yAxis: $6"
+			"       yAxis: $6",
+			"  id: '$1'"
 		],
 		"description": "node generator"
 	},
