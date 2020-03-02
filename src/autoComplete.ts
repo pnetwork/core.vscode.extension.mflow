@@ -11,15 +11,15 @@ import { getConfig, getGlobalConfig } from "./path";
 abstract class AutoComplete {
     config: any;
     gbConfig: any;
-    constructor(public rootPath: string, public wfYaml: any, public wfUri: string) {
+    constructor(public rootPath: string, public wfYaml: any, public ouput: vscode.OutputChannel) {
         this.rootPath = rootPath;
         this.wfYaml = wfYaml;
-        this.wfUri = wfUri;
         this.config = getConfig(this.rootPath);
         this.gbConfig = getGlobalConfig();
+        this.ouput = ouput;
     }
 
-    protected abstract getSchemaYaml(nodeId: string): any;
+    protected abstract getSchemaYaml(nodeId?: string): any;
     /**
      * Get auto complete options.
      * @param nodeId: the node id from wf template graph.yaml.
@@ -32,8 +32,8 @@ abstract class AutoComplete {
  * Script auto Complete
  */
 export class ScriptAutoComplete extends AutoComplete {
-    constructor(public rootPath: string, public wfYaml: any, public wfUri: string, public wfScript: any) {
-        super(rootPath, wfYaml, wfUri);
+    constructor(public rootPath: string, public wfYaml: any, public wfScript: any, public ouput: vscode.OutputChannel) {
+        super(rootPath, wfYaml, ouput);
         this.wfScript = wfScript;
     }
 
@@ -42,25 +42,24 @@ export class ScriptAutoComplete extends AutoComplete {
      * @param nodeId: the node id from wf template graph.yaml.
      */
     protected getSchemaYaml(nodeId: string): any {
+        if (!this.wfYaml.graph.nodes) return;
         const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === nodeId);
+        this.ouput.appendLine(`Script auto complete: node id(${nodeId}).`);
         if (scriptMeta && scriptMeta.metadata && scriptMeta.metadata.script) {
             const scriptId = scriptMeta.metadata.script.id;
             if (!scriptId) throw Error("has no script id");
             const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
             if (script.length < 1) throw Error("has no script id");
-            if (!fs.existsSync(script[0].scriptSchemaPath)) {
-                return;
-            }
+            this.ouput.appendLine(`Script auto complete: script id(${scriptId}).`);
+            if (!fs.existsSync(script[0].scriptSchemaPath)) return;
             return yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
         }
-        return undefined;
     }
 
     public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
         const schemaYaml = this.getSchemaYaml(nodeId);
-        if (!schemaYaml) {
-            throw Error(`scriptId cannot find.`);
-        }
+        if (!schemaYaml) throw Error(`scriptId cannot find.`);
+        this.ouput.appendLine(`Script auto complete schema loaded success.`);
 
         let options = schemaYaml.outputs;
         let isArray = false;
@@ -95,9 +94,7 @@ export class ScriptAutoComplete extends AutoComplete {
         }
 
         const dependencies = Object.keys(options || {});
-        return dependencies.map(dep => {
-            return new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field);
-        });
+        return dependencies.map(dep => new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field));
     }
 }
 
@@ -111,14 +108,11 @@ export class EventAutoComplete extends AutoComplete {
      */
     protected getSchemaYaml(): any {
         let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
-        if (eventPath) {
-            eventPath = path.join(this.rootPath, eventPath);
-            if (!fs.existsSync(eventPath)) {
-                return;
-            }
-            return yaml.safeLoad(fs.readFileSync(eventPath, "utf8"));
-        }
-        return undefined;
+        if (!eventPath) return;
+        this.ouput.appendLine(`Event auto complete: event path is ${eventPath}.`);
+        eventPath = path.join(this.rootPath, eventPath);
+        if (!fs.existsSync(eventPath)) return;
+        return yaml.safeLoad(fs.readFileSync(eventPath, "utf8"));
     }
 
     public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
@@ -126,6 +120,7 @@ export class EventAutoComplete extends AutoComplete {
         if (!eventYaml) {
             return [new vscode.CompletionItem("")];
         }
+        this.ouput.appendLine(`Event auto complete schema loaded success.`);
         let options = eventYaml;
         let isArray = false;
         for (const i in lineTexts) {
@@ -147,9 +142,7 @@ export class EventAutoComplete extends AutoComplete {
             }
         }
         const dependencies = Object.keys(options || {});
-        return dependencies.map(dep => {
-            return new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field);
-        });
+        return dependencies.map(dep => new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field));
     }
 }
 
@@ -159,21 +152,20 @@ export class EventAutoComplete extends AutoComplete {
  * @param position: trigger position in document.
  * @param rootPath: workspeace root.
  * @param wfYaml: the newest saved workflow templaye yaml.
- * @param wfUri: the newest saved workflow templaye yaml uri.
+ * @param wfScript: the newest saved script info from workflow templaye.
+ * @param ouput: The mflow output channel.
  */
 export async function autoComplete(
     document: vscode.TextDocument,
     position: vscode.Position,
     rootPath: string,
     wfYaml: any,
-    wfUri: string,
-    wfScript: any
+    wfScript: any,
+    ouput: vscode.OutputChannel
 ): Promise<vscode.CompletionItem[]> {
-    if (document.fileName !== wfUri) {
-        return [new vscode.CompletionItem("")];
-    }
     const line = document.lineAt(position).text.substring(0, position.character);
     const lineText = line.match(/(\d)\.([^\s]+\.)?/);
+    ouput.appendLine(`Auto complete typing text(${line}) matches(${lineText})`);
     if (lineText && lineText.length > 1 && wfYaml && wfYaml.graph) {
         let autoComplete: AutoComplete;
         const lineTexts =
@@ -185,9 +177,9 @@ export async function autoComplete(
                       .filter(x => x)
                 : [];
         if (lineText[1] === "0") {
-            autoComplete = new EventAutoComplete(rootPath, wfYaml, wfUri);
+            autoComplete = new EventAutoComplete(rootPath, wfYaml, ouput);
         } else {
-            autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfUri, wfScript);
+            autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfScript, ouput);
         }
         return autoComplete.getCompletionItems(lineText[1], lineTexts);
     }

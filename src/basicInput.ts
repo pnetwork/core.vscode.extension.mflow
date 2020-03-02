@@ -1,5 +1,7 @@
-import { window, OpenDialogOptions, InputBoxOptions, Terminal, workspace, OutputChannel, QuickPickItem } from "vscode";
+import { window, OpenDialogOptions, InputBoxOptions, Terminal, OutputChannel, QuickPickItem } from "vscode";
 import child from "child_process";
+
+const TERMINAL_NAME = "mflow Terminal";
 
 /**
  * Create input box.
@@ -7,6 +9,7 @@ import child from "child_process";
  * @param example: the example in input box placeHolder.
  */
 export async function createInputBox(desc: string, example?: string): Promise<string | undefined> {
+    if (!desc) throw Error("InputBox prompt cannot be empty");
     const options: InputBoxOptions = {
         prompt: desc,
         placeHolder: example
@@ -17,19 +20,18 @@ export async function createInputBox(desc: string, example?: string): Promise<st
 
 /**
  * Create quick pick.
- * @param items: quick pick items.
+ * @param quickPickItems: quick pick items.
  * @param onSelectFunc: on select item function.
  */
 export async function createQuickPick(
     quickPickItems: any[],
     onSelectFunc: (selection: QuickPickItem) => void
 ): Promise<void> {
+    if (!quickPickItems) throw Error("QuickPickItems cannot be empty");
     const quickPick = window.createQuickPick();
     quickPick.items = quickPickItems;
     quickPick.onDidChangeSelection(async selection => {
-        if (selection[0]) {
-            await onSelectFunc(selection[0]);
-        }
+        if (selection[0]) await onSelectFunc(selection[0]);
     });
     quickPick.onDidHide(() => quickPick.dispose());
     quickPick.show();
@@ -46,10 +48,7 @@ export async function createBrowseFolder(): Promise<string | undefined> {
     };
 
     const folderUri = await window.showOpenDialog(browseOptions);
-
-    if (folderUri && folderUri[0]) {
-        return folderUri[0].fsPath;
-    }
+    if (folderUri && folderUri[0]) return folderUri[0].fsPath;
 }
 
 /**
@@ -67,36 +66,22 @@ export function execCommandCallback(
             throw error;
         }
         if (stderr) {
-            if (mflowOuputChannel) {
-                mflowOuputChannel.appendLine(stderr);
-            }
+            if (mflowOuputChannel) mflowOuputChannel.appendLine(stderr);
         } else if (stdout) {
-            if (mflowOuputChannel) {
-                mflowOuputChannel.appendLine(stdout);
-            }
+            if (mflowOuputChannel) mflowOuputChannel.appendLine(stdout);
             execFunc(stdout);
         }
     };
 }
 
 /**
- * Get MFlow path from setting
- */
-export function getMFlowPath(): string {
-    let mflowPath = workspace.getConfiguration().get<string>("mflow.path");
-    if (!mflowPath) {
-        mflowPath = "mflow";
-    }
-    return mflowPath;
-}
-
-/**
  * Get or create terminal
  */
-export function activeTerminalwithConfig(): Terminal {
+export function activeMflowTerminal(): Terminal {
     let terminal = window.activeTerminal;
-    if (!(terminal && terminal.name.startsWith("mflow Terminal"))) {
-        terminal = window.createTerminal("mflow Terminal");
+    if (!(terminal && terminal.name.startsWith(TERMINAL_NAME))) {
+        const terminals = window.terminals.filter(x => x.name.startsWith(TERMINAL_NAME));
+        terminal = terminals.length > 0 ? terminals[0] : window.createTerminal(TERMINAL_NAME);
     }
     return terminal;
 }

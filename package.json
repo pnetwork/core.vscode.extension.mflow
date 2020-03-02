@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -30,7 +30,6 @@
 		"onCommand:mflow.view.wf",
 		"onLanguage:yaml",
 		"onLanguage:json",
-		"onView:nodeDependencies",
 		"onWebviewPanel:wfGraph"
 	],
 	"main": "./out/extension.js",

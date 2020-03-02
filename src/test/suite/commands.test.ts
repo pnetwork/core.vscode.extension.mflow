@@ -20,19 +20,10 @@ function filterLabels(result: vscode.CompletionItem[], mustHaveOptions: string[]
 const mockBasePath = "../../../src/test/mock_data";
 
 suite("mflow: Auto Complete Test", function() {
+    let ouputChannel: vscode.OutputChannel;
     setup(function(done) {
         this.timeout(10000);
-        vscode.workspace.findFiles = async function(
-            include: vscode.GlobPattern,
-            exclude?: vscode.GlobPattern | null,
-            maxResults?: number,
-            token?: vscode.CancellationToken
-        ): Promise<vscode.Uri[]> {
-            const srcPath = path.join(__dirname, `${mockBasePath}/balances.para`);
-            const u = vscode.Uri.parse(srcPath);
-
-            return [u];
-        };
+        ouputChannel = vscode.window.createOutputChannel("mflow ouput");
         done();
     });
 
@@ -47,7 +38,7 @@ suite("mflow: Auto Complete Test", function() {
                 scriptSchemaPath: path.join(__dirname, mockBasePath, "balances.para")
             }
         ];
-        const autoComplete = new ScriptAutoComplete(os.homedir(), wfYaml, "", mockScript);
+        const autoComplete = new ScriptAutoComplete(os.homedir(), wfYaml, mockScript, ouputChannel);
         let result = await autoComplete.getCompletionItems("3", []);
         assert.equal(result.length, 5);
         let mustHaveOptions = ["balances_result", "count", "accounts", "exception", "result"];
@@ -77,7 +68,7 @@ suite("mflow: Auto Complete Test", function() {
         const srcPath = path.join(__dirname, `${mockBasePath}/graph.yml`);
         const eventYamlPath = path.join(__dirname, `${mockBasePath}/event.yml`);
         const wfYaml = yaml.safeLoad(fs.readFileSync(srcPath, "utf8"));
-        const autoComplete = new EventAutoComplete(os.homedir(), wfYaml, "");
+        const autoComplete = new EventAutoComplete(os.homedir(), wfYaml, ouputChannel);
 
         // eslint-disable-next-line @typescript-eslint/camelcase
         autoComplete.config.input_event_path = eventYamlPath.replace(os.homedir(), "");
@@ -112,7 +103,7 @@ suite("mflow: Auto Complete Test", function() {
         const srcPath = path.join(__dirname, `${mockBasePath}/graph.yml`);
         const eventYamlPath = path.join(__dirname, `${mockBasePath}/event.json`);
         const wfYaml = yaml.safeLoad(fs.readFileSync(srcPath, "utf8"));
-        const autoComplete = new EventAutoComplete(os.homedir(), wfYaml, "");
+        const autoComplete = new EventAutoComplete(os.homedir(), wfYaml, ouputChannel);
 
         // eslint-disable-next-line @typescript-eslint/camelcase
         autoComplete.config.input_event_path = eventYamlPath.replace(os.homedir(), "");

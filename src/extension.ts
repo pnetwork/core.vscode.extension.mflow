@@ -1,8 +1,8 @@
 import vscode from "vscode";
-import { createInputBox, createQuickPick, getMFlowPath, createBrowseFolder, execCommandCallback } from "./basicInput";
+import { createInputBox, createQuickPick, createBrowseFolder, execCommandCallback } from "./basicInput";
 import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
 import { autoComplete } from "./autoComplete";
-import { getWfUri, getWfYaml } from "./path";
+import { getWfUri, getWfYaml, getMFlowPath } from "./path";
 import child from "child_process";
 import yaml from "js-yaml";
 import path from "path";
@@ -15,9 +15,7 @@ let mflowCmd: MFlowCommand;
 let wfScript: any;
 
 function showVersionCmd(): vscode.Disposable {
-    return vscode.commands.registerCommand("mflow.show.version", () => {
-        mflowCmd.getVersion();
-    });
+    return vscode.commands.registerCommand("mflow.show.version", () => mflowCmd.getVersion());
 }
 
 function createProjectCmd(): vscode.Disposable {
@@ -25,14 +23,10 @@ function createProjectCmd(): vscode.Disposable {
         const items = [{ label: "$(file-directory) Browse... (recently used)" }];
         await createQuickPick(items, async () => {
             const folderUri = await createBrowseFolder();
-            if (folderUri) {
-                console.log("Selected folder: " + folderUri);
-                const projectName = await createInputBox("Please enter project name: ");
-                if (!projectName) {
-                    return;
-                }
-                mflowCmd.createProject(projectName, folderUri);
-            }
+            if (!folderUri) return;
+            const projectName = await createInputBox("Please enter project name: ");
+            if (!projectName) return;
+            mflowCmd.createProject(projectName, folderUri);
         });
     });
 }
@@ -40,9 +34,7 @@ function createProjectCmd(): vscode.Disposable {
 function createScriptCmd(scriptType: ScriptTypes): vscode.Disposable {
     return vscode.commands.registerCommand(`mflow.${scriptType}.create`, async () => {
         const name = await createInputBox(`Please enter ${scriptType} name: `);
-        if (!name) {
-            return;
-        }
+        if (!name) return;
         await mflowCmd.createScript(scriptType, name);
     });
 }
@@ -66,37 +58,27 @@ function showInstalledScriptCmd(): vscode.Disposable {
 function uninstallScriptCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.uninstall.script", async () => {
         const scriptId = await createInputBox("Please enter script id: ", "notification");
-        if (!scriptId) {
-            return;
-        }
+        if (!scriptId) return;
         mflowCmd.uninstallScript(scriptId);
     });
 }
 
 function upCmd(): vscode.Disposable {
-    return vscode.commands.registerCommand("mflow.up", () => {
-        mflowCmd.up();
-    });
+    return vscode.commands.registerCommand("mflow.up", () => mflowCmd.up());
 }
 
 function runCmd(): vscode.Disposable {
-    return vscode.commands.registerCommand("mflow.run", () => {
-        mflowCmd.run();
-    });
+    return vscode.commands.registerCommand("mflow.run", () => mflowCmd.run());
 }
 
 function downCmd(): vscode.Disposable {
-    return vscode.commands.registerCommand("mflow.down", () => {
-        mflowCmd.down();
-    });
+    return vscode.commands.registerCommand("mflow.down", () => mflowCmd.down());
 }
 
 function logsCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.logs", async () => {
         const scriptId = await createInputBox("Please enter script id: ", "notification or *");
-        if (!scriptId) {
-            return;
-        }
+        if (!scriptId) return;
         mflowCmd.logs(scriptId);
     });
 }
@@ -129,10 +111,10 @@ function deployCmd(isAuto: boolean): vscode.Disposable {
     return vscode.commands.registerCommand(isAuto ? "mflow.deploy.auto" : "mflow.deploy", async () => {
         const quickPick = vscode.window.createQuickPick();
         quickPick.items = Object.values(PackTypes).map(label => ({ label }));
-
         await createQuickPick(
             Object.values(PackTypes).map(label => ({ label })),
             async selection => {
+                if (!selection) return;
                 await mflowCmd.deploy(selection, isAuto);
             }
         );
@@ -145,18 +127,19 @@ function viewWf(): vscode.Disposable {
 
         const title = wfUri ? path.basename(wfUri) : "graph.yml";
         const panel = vscode.window.createWebviewPanel("wfGraph", title, vscode.ViewColumn.One);
-        panel.webview.html = mflowCmd.buildGraphWebView();
+        panel.webview.html = mflowCmd.buildWfGraphWebView(panel);
     });
 }
 
 function autoCompleteItems(): vscode.Disposable {
     return vscode.languages.registerCompletionItemProvider(
-        "yaml",
+        { scheme: "file", language: "yaml" },
         {
             async provideCompletionItems(document, position) {
                 await vscode.commands.executeCommand("workbench.action.files.save");
                 if (!wfUri || !wfYaml || !rootPath) return;
-                const item = await autoComplete(document, position, rootPath, wfYaml, wfUri, wfScript)
+                if (document.fileName !== wfUri) return [new vscode.CompletionItem("")];
+                const item = await autoComplete(document, position, rootPath, wfYaml, wfScript, ouputChannel)
                     .then(function(response: any) {
                         return response;
                     })
@@ -182,7 +165,7 @@ function reloadWfYamlbyWfUri(document: vscode.TextDocument, mflowPath: string): 
         if (!(wfUri && document.fileName === wfUri)) return;
         const wfYamlNew = getWfYaml(wfUri);
         wfYaml = wfYamlNew || wfYaml;
-        if (!wfYaml) return;
+        if (!wfYamlNew) return;
         const openFile = execCommandCallback(stdout => {
             if (!stdout) return;
             wfScript = yaml.safeLoad(stdout.toString());
@@ -206,7 +189,8 @@ function initWfYamlAndWfUri(mflowPath: string): void {
 export function activate(c: vscode.ExtensionContext): void {
     ouputChannel = vscode.window.createOutputChannel("mflow ouput");
     const mflowPath = getMFlowPath();
-    rootPath = vscode.workspace.rootPath || "";
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
     mflowCmd = new MFlowCommand(mflowPath, rootPath, ouputChannel);
 
     const cmdList = [
@@ -236,9 +220,7 @@ export function activate(c: vscode.ExtensionContext): void {
     c.subscriptions.concat(cmdList);
 
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => reloadWfYamlbyWfUri(document, mflowPath));
-    vscode.workspace.onDidChangeConfiguration(() => {
-        mflowCmd.mflowPath = getMFlowPath();
-    });
+    vscode.workspace.onDidChangeConfiguration(() => (mflowCmd.mflowPath = getMFlowPath()));
     vscode.window.onDidChangeActiveTextEditor(e => {
         if (wfUri !== e?.document?.fileName) vscode.commands.executeCommand("setContext", "isWfYaml", false);
         else vscode.commands.executeCommand("setContext", "isWfYaml", true);

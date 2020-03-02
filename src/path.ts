@@ -2,6 +2,7 @@ import path from "path";
 import yaml from "js-yaml";
 import fs from "fs";
 import os from "os";
+import { workspace } from "vscode";
 
 /**
  * Get file url of workflow graph yaml
@@ -62,4 +63,15 @@ export function getGlobalConfig(): any {
     return yaml.safeLoad(fs.readFileSync(path.join(os.homedir(), ".mflow", "config.json"), "utf8"), {
         schema: yaml.JSON_SCHEMA
     });
+}
+
+/**
+ * Get MFlow path from setting
+ */
+export function getMFlowPath(): string {
+    let mflowPath = workspace.getConfiguration().get<string>("mflow.path");
+    if (!mflowPath) {
+        mflowPath = "mflow";
+    }
+    return mflowPath;
 }
