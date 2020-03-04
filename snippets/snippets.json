@@ -12,6 +12,16 @@
 		],
 		"description": "node generator"
 	},
+	"mflow: node selector generator": {
+		"prefix": "nodes.selector.metadata",
+		"body": [ 
+			"metadata:",
+			"    type: selector",
+			"    title: selector",
+			"  id: '$1'"
+		],
+		"description": "node generator"
+	},
 	"mflow: edge generator": {
 		"prefix": "edges.source",
 		"body": [
@@ -32,8 +42,8 @@
 			"  target: '$2'",
 			"  metadata:",
 			"    filters:",
-			"    - property: $3",
-			"      operator: ${4:>|==|<|!=|>=|<=}",
+			"      property: $3",
+			"      operator: '${4:>|==|<|!=|>=|<=}'",
 			"      value: $5",
 			"    binding:",
 			"    - property: $6",
