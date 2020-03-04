@@ -8,10 +8,6 @@
 			"    description: '$3'",
 			"    script: ",
 			"      id: $4",
-			"    marvinProperties: ",
-			"      position: ",
-			"       xAxis: $5",
-			"       yAxis: $6",
 			"  id: '$1'"
 		],
 		"description": "node generator"
@@ -25,8 +21,50 @@
 			"    binding:",
 			"    - property: $3",
 			"      value: $4",
-			"      type: $5"
+			"      type: '${5:string|number|array|object}'"
 		],
 		"description": "edge generator"
+	},
+	"mflow: edge selector generator": {
+		"prefix": "edges.source.selector",
+		"body": [
+			"source: '$1'",
+			"  target: '$2'",
+			"  metadata:",
+			"    filters:",
+			"    - property: $3",
+			"      operator: ${4:>|==|<|!=|>=|<=}",
+			"      value: $5",
+			"    binding:",
+			"    - property: $6",
+			"      value: $7",
+			"      type: '${8:string|number|array|object}'"
+		],
+		"description": "edge selector generator"
+	},
+	"mflow: cron trigger": {
+		"prefix": "type cron trigger",
+		"body": [
+			"type: cron",
+			"  data: '${1:0 * * * *}'"
+		],
+		"description": "cron trigger"
+	},
+	"mflow: event trigger": {
+		"prefix": "type event trigger",
+		"body": [
+			"type: event",
+			"  data: '${1:event+id}::${2:version}'"
+		],
+		"description": "event trigger"
+	},
+	"mflow: action property": {
+		"prefix": "action property",
+		"body": [
+			"property: $1",
+			"  value: ${2}",
+			"  type: '${3:string|number|array|object}'"
+		],
+		"description": "binding action property"
 	}
 }

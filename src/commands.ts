@@ -29,7 +29,7 @@ export enum ScriptTypes {
 export class MFlowCommand {
     readonly noRootPathErrorMsg = "Please create or open mflow project first!";
     readonly scriptInstalledConf = "packages.json";
-    readonly scriptNameReg = new RegExp("^[a-z0-9]+$");
+    readonly overwirteQ = "Overwrite existing scripts on Marvin ? ";
 
     constructor(public mflowPath: string, public rootPath: string, public output: OutputChannel) {
         this.mflowPath = mflowPath;
@@ -99,6 +99,7 @@ export class MFlowCommand {
      * Get mflow version.
      */
     public getVersion(): void {
+        this.output.appendLine(`Show version.`);
         this.sendTerminal(`${this.mflowPath} -V`);
     }
 
@@ -106,14 +107,16 @@ export class MFlowCommand {
      * Create mflow project.
      * @param name: mflow project name.
      * @param path: where the project created.
+     * @param isGenSample: is generator sample wf template.
      */
-    public async createProject(name: string, path: string): Promise<void> {
+    public async createProject(name: string, path: string, isGenSample: boolean): Promise<void> {
         this.output.appendLine(`Create mflow project ${name} in ${path}.`);
         const openFolder = execCommandCallback(() => {
             const workspaceUri: Uri = Uri.parse(path + "/" + name);
             commands.executeCommand("vscode.openFolder", workspaceUri);
         }, this.output);
-        child.execFile(`${this.mflowPath}`, ["create", `${name}`, "-y"], { cwd: path }, openFolder);
+        const getCmd = isGenSample ? "-y --example" : "-y";
+        child.execFile(`${this.mflowPath}`, ["create", getCmd, `${name}`], { cwd: path }, openFolder);
     }
 
     /**
@@ -123,11 +126,6 @@ export class MFlowCommand {
      */
     public async createScript(scriptType: ScriptTypes, name: string): Promise<void> {
         if (!this.verifyRootPath()) return;
-        if (!this.scriptNameReg.test(name)) {
-            this.output.appendLine(`Script name(${name}) should be number(0-9) or lowercase letter(a-z)!`);
-            window.showErrorMessage(`Script name(${name}) should be number(0-9) or lowercase letter(a-z)!`);
-            return;
-        }
         this.output.appendLine(`Create ${scriptType} project ${name}.`);
         const openFile = execCommandCallback(() => {
             const paraFile = Uri.parse(path.join(this.rootPath, "src", scriptType, name, `${name}.para`));
@@ -142,6 +140,7 @@ export class MFlowCommand {
      */
     public installScript(scriptId: string): void {
         if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Install script ${scriptId}.`);
         scriptId = scriptId === "*" ? "" : scriptId;
         this.sendTerminal(`${this.mflowPath} install ${scriptId}`);
     }
@@ -150,7 +149,9 @@ export class MFlowCommand {
      * Get installed script list.
      */
     public getInstalledScript(): void {
-        this.sendTerminal(`${this.mflowPath} install --list`);
+        if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Show installed script.`);
+        this.sendTerminal(`${this.mflowPath} install -l`);
     }
 
     /**
@@ -159,8 +160,19 @@ export class MFlowCommand {
      */
     public uninstallScript(scriptId: string): void {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Uninstall ${scriptId}.`);
+        this.output.appendLine(`Uninstall script ${scriptId}.`);
         this.sendTerminal(`${this.mflowPath} uninstall ${scriptId}`);
+    }
+
+    /**
+     * Show remote script.
+     * @param scriptId: script id.
+     */
+    public remoteScript(scriptId: string): void {
+        if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Remote script ${scriptId}.`);
+        scriptId = scriptId === "*" ? "" : scriptId;
+        this.sendTerminal(`${this.mflowPath} remote ${scriptId} -l`);
     }
 
     /**
@@ -168,6 +180,7 @@ export class MFlowCommand {
      */
     public up(): void {
         if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Up containers.`);
         this.sendTerminal(`${this.mflowPath} up`);
     }
 
@@ -176,6 +189,7 @@ export class MFlowCommand {
      */
     public run(): void {
         if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Run.`);
         this.sendTerminal(`${this.mflowPath} run --auto`);
     }
 
@@ -184,6 +198,7 @@ export class MFlowCommand {
      */
     public down(): void {
         if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Down containers.`);
         this.sendTerminal(`${this.mflowPath} down -a`);
     }
 
@@ -234,11 +249,11 @@ export class MFlowCommand {
                 if (!scriptSelect) return;
                 const scriptPath = scriptSelect.detail;
                 const scriptType = scriptSelect.description;
-                this.sendTerminal(`${this.mflowPath} ${scriptType} pack -p ${scriptPath}`);
+                this.sendTerminal(`${this.mflowPath} ${scriptType} pack -p ${scriptPath} --auto-pos`);
             });
         } else {
             const packTartget = itemType.label === PackTypes.ALL ? "-a" : "";
-            this.sendTerminal(`${this.mflowPath} pack ${packTartget}`);
+            this.sendTerminal(`${this.mflowPath} pack ${packTartget} --auto-pos`);
         }
     }
 
@@ -249,7 +264,6 @@ export class MFlowCommand {
      */
     public async deploy(itemType: QuickPickItem, isAuto: boolean): Promise<void> {
         if (!this.verifyRootPath()) return;
-        const overwirteQ = "Do you want to overwrite existing script on Marvin ? ";
         this.output.appendLine(`Deploy ${itemType.label}.`);
         if (itemType.label === PackTypes.SCRIPT) {
             const scripts = this.getScriptQuickPickItems();
@@ -257,7 +271,7 @@ export class MFlowCommand {
                 if (!scriptSelect) return;
                 const scriptPath = scriptSelect.detail;
                 const scriptType = scriptSelect.description;
-                let isOverwrite = await createInputBox(overwirteQ, "Y/N");
+                let isOverwrite = await createInputBox(this.overwirteQ, "Y/N");
                 if (!isOverwrite) return;
                 isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
                 if (isAuto) {
@@ -270,7 +284,7 @@ export class MFlowCommand {
             });
         } else {
             const packtype = itemType.label === PackTypes.ALL ? "-a" : "";
-            let isOverwrite = await createInputBox(overwirteQ, "Y/N");
+            let isOverwrite = await createInputBox(this.overwirteQ, "Y/N");
             if (!isOverwrite) return;
             isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
             if (isAuto) {
@@ -290,6 +304,7 @@ export class MFlowCommand {
             return "";
         }
 
+        this.output.appendLine("Build graph.");
         const diskPath = Uri.file(img);
         img = panel.webview.asWebviewUri(diskPath).toString();
         return `<!DOCTYPE html>

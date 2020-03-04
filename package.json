@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -19,6 +19,7 @@
 		"onCommand:mflow.show.installed",
 		"onCommand:mflow.install.script",
 		"onCommand:mflow.uninstall.script",
+		"onCommand:mflow.remote.scripts",
 		"onCommand:mflow.up",
 		"onCommand:mflow.run",
 		"onCommand:mflow.down",
@@ -69,6 +70,10 @@
 			{
 				"command": "mflow.show.installed",
 				"title": "mflow: List Installed Scripts"
+			},
+			{
+				"command": "mflow.remote.scripts",
+				"title": "mflow: List Remote Scripts"
 			},
 			{
 				"command": "mflow.install.script",

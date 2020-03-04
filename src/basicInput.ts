@@ -7,12 +7,18 @@ const TERMINAL_NAME = "mflow Terminal";
  * Create input box.
  * @param desc: the description in input box prompt.
  * @param example: the example in input box placeHolder.
+ * @param validateFunc: validate input text function.
  */
-export async function createInputBox(desc: string, example?: string): Promise<string | undefined> {
+export async function createInputBox(
+    desc: string,
+    example?: string,
+    validateFunc?: (text: string) => string | undefined
+): Promise<string | undefined> {
     if (!desc) throw Error("InputBox prompt cannot be empty");
     const options: InputBoxOptions = {
         prompt: desc,
-        placeHolder: example
+        placeHolder: example,
+        validateInput: validateFunc
     };
     const result = await window.showInputBox(options);
     return result;

@@ -13,6 +13,7 @@ let wfUri: string | undefined;
 let wfYaml: any;
 let mflowCmd: MFlowCommand;
 let wfScript: any;
+const scriptNameReg = new RegExp("^[a-z0-9]+$");
 
 function showVersionCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.show.version", () => mflowCmd.getVersion());
@@ -26,14 +27,18 @@ function createProjectCmd(): vscode.Disposable {
             if (!folderUri) return;
             const projectName = await createInputBox("Please enter project name: ");
             if (!projectName) return;
-            mflowCmd.createProject(projectName, folderUri);
+            const genSample = await createInputBox("Create a sample project? ", "Y/N");
+            if (!genSample) return;
+            mflowCmd.createProject(projectName, folderUri, genSample.toUpperCase() === "Y");
         });
     });
 }
 
 function createScriptCmd(scriptType: ScriptTypes): vscode.Disposable {
     return vscode.commands.registerCommand(`mflow.${scriptType}.create`, async () => {
-        const name = await createInputBox(`Please enter ${scriptType} name: `);
+        const name = await createInputBox(`Please enter ${scriptType} name: `, undefined, text => {
+            if (!scriptNameReg.test(text)) return "Script name should be number(0-9) or lowercase letter(a-z).";
+        });
         if (!name) return;
         await mflowCmd.createScript(scriptType, name);
     });
@@ -60,6 +65,14 @@ function uninstallScriptCmd(): vscode.Disposable {
         const scriptId = await createInputBox("Please enter script id: ", "notification");
         if (!scriptId) return;
         mflowCmd.uninstallScript(scriptId);
+    });
+}
+
+function remoteScriptCmd(): vscode.Disposable {
+    return vscode.commands.registerCommand("mflow.remote.scripts", async () => {
+        const scriptId = await createInputBox("Please enter script id: ", "notification or *");
+        if (!scriptId) return;
+        mflowCmd.remoteScript(scriptId);
     });
 }
 
@@ -199,6 +212,7 @@ export function activate(c: vscode.ExtensionContext): void {
         showInstalledScriptCmd(),
         installScriptCmd(),
         uninstallScriptCmd(),
+        remoteScriptCmd(),
         upCmd(),
         runCmd(),
         downCmd(),
