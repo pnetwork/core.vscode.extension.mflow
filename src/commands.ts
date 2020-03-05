@@ -3,7 +3,7 @@ import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
 import fs from "fs";
-import { activeMflowTerminal, createQuickPick, execCommandCallback, createInputBox } from "./basicInput";
+import { activeMflowTerminal, createQuickPick, execCommandCallback } from "./basicInput";
 
 /**
  * Package source type.
@@ -106,17 +106,17 @@ export class MFlowCommand {
     /**
      * Create mflow project.
      * @param name: mflow project name.
-     * @param path: where the project created.
+     * @param uri: where the project created.
      * @param isGenSample: is generator sample wf template.
      */
-    public async createProject(name: string, path: string, isGenSample: boolean): Promise<void> {
-        this.output.appendLine(`Create mflow project ${name} in ${path}.`);
+    public async createProject(name: string, uri: Uri, isGenSample: boolean): Promise<void> {
+        this.output.appendLine(`Create mflow project ${name} in ${uri.fsPath}.`);
         const openFolder = execCommandCallback(() => {
-            const workspaceUri: Uri = Uri.parse(path + "/" + name);
+            const workspaceUri: Uri = Uri.parse(uri.fsPath + "/" + name);
             commands.executeCommand("vscode.openFolder", workspaceUri);
         }, this.output);
         const getCmd = isGenSample ? "-y --example" : "-y";
-        child.execFile(`${this.mflowPath}`, ["create", getCmd, `${name}`], { cwd: path }, openFolder);
+        child.execFile(`${this.mflowPath}`, ["create", getCmd, `${name}`], { cwd: uri.fsPath }, openFolder);
     }
 
     /**
@@ -259,39 +259,28 @@ export class MFlowCommand {
 
     /**
      * Deploy the wf template and script from pack()
-     * @param itemType: Select script type.
-     * @param isAuto: is auto deploy or only deploy.
+     * @param isAuto: Is auto deploy or only deploy.
+     * @param type: Select pack type.
+     * @param isOverwrite: Is overwrite marvel script/wf.
+     * @param scriptType: Select script type.
+     * @param scriptPath: The script path.
      */
-    public async deploy(itemType: QuickPickItem, isAuto: boolean): Promise<void> {
+    public async deploy(
+        isAuto: boolean,
+        type: PackTypes,
+        isOverwrite: boolean,
+        scriptType?: ScriptTypes,
+        scriptPath?: string
+    ): Promise<void> {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Deploy ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
-            const scripts = this.getScriptQuickPickItems();
-            await createQuickPick(scripts, async scriptSelect => {
-                if (!scriptSelect) return;
-                const scriptPath = scriptSelect.detail;
-                const scriptType = scriptSelect.description;
-                let isOverwrite = await createInputBox(this.overwirteQ, "Y/N");
-                if (!isOverwrite) return;
-                isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-                if (isAuto) {
-                    this.sendTerminal(
-                        `${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath} --autobuildpush --autopack`
-                    );
-                } else {
-                    this.sendTerminal(`${this.mflowPath} ${scriptType} deploy ${isOverwrite} -p ${scriptPath}`);
-                }
-            });
+        let option = isOverwrite ? "-y " : "";
+        option = isAuto ? option + " --autobuildpush --autopack" : option;
+        if (type === PackTypes.SCRIPT) {
+            option = `-p ${scriptPath} ` + option;
+            this.sendTerminal(`${this.mflowPath} ${scriptType} deploy ${option} `);
         } else {
-            const packtype = itemType.label === PackTypes.ALL ? "-a" : "";
-            let isOverwrite = await createInputBox(this.overwirteQ, "Y/N");
-            if (!isOverwrite) return;
-            isOverwrite = isOverwrite.toUpperCase() === "Y" ? "-y" : "";
-            if (isAuto) {
-                this.sendTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite} --autobuildpush --autopack`);
-            } else {
-                this.sendTerminal(`${this.mflowPath} deploy ${packtype} ${isOverwrite}`);
-            }
+            option = type === PackTypes.ALL ? "-a " + option : option;
+            this.sendTerminal(`${this.mflowPath} deploy ${option}`);
         }
     }
 

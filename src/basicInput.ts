@@ -1,4 +1,4 @@
-import { window, OpenDialogOptions, InputBoxOptions, Terminal, OutputChannel, QuickPickItem } from "vscode";
+import { window, Uri, OpenDialogOptions, InputBoxOptions, Terminal, OutputChannel, QuickPickItem } from "vscode";
 import child from "child_process";
 
 const TERMINAL_NAME = "mflow Terminal";
@@ -45,16 +45,18 @@ export async function createQuickPick(
 
 /**
  * Create browse foldor.
+ * @param defaultUri: Browse folder default uri.
  */
-export async function createBrowseFolder(): Promise<string | undefined> {
+export async function createBrowseFolder(defaultUri?: Uri): Promise<Uri | undefined> {
     const browseOptions: OpenDialogOptions = {
+        defaultUri: defaultUri || undefined,
         canSelectFolders: true,
         canSelectFiles: false,
         openLabel: "Select"
     };
 
     const folderUri = await window.showOpenDialog(browseOptions);
-    if (folderUri && folderUri[0]) return folderUri[0].fsPath;
+    if (folderUri && folderUri[0]) return folderUri[0];
 }
 
 /**

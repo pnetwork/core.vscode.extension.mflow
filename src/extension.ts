@@ -1,11 +1,12 @@
 import vscode from "vscode";
-import { createInputBox, createQuickPick, createBrowseFolder, execCommandCallback } from "./basicInput";
+import { createInputBox, createQuickPick, execCommandCallback } from "./basicInput";
 import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
 import { autoComplete } from "./autoComplete";
 import { getWfUri, getWfYaml, getMFlowPath } from "./path";
 import child from "child_process";
 import yaml from "js-yaml";
 import path from "path";
+import { multiStepInput, MultiStepTypes } from "./multiStep";
 
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
@@ -21,16 +22,10 @@ function showVersionCmd(): vscode.Disposable {
 
 function createProjectCmd(): vscode.Disposable {
     return vscode.commands.registerCommand("mflow.create.project", async () => {
-        const items = [{ label: "$(file-directory) Browse... (recently used)" }];
-        await createQuickPick(items, async () => {
-            const folderUri = await createBrowseFolder();
-            if (!folderUri) return;
-            const projectName = await createInputBox("Please enter project name: ");
-            if (!projectName) return;
-            const genSample = await createInputBox("Create a sample project? ", "Y/N");
-            if (!genSample) return;
-            mflowCmd.createProject(projectName, folderUri, genSample.toUpperCase() === "Y");
-        });
+        const result = await multiStepInput("Create mflow project", MultiStepTypes.CREATE_PROJECT);
+        if (result && result.isSuc) {
+            await mflowCmd.createProject(result.name, result.uri, result.yn.toUpperCase() === "Y");
+        }
     });
 }
 
@@ -122,15 +117,11 @@ function packCmd(): vscode.Disposable {
 
 function deployCmd(isAuto: boolean): vscode.Disposable {
     return vscode.commands.registerCommand(isAuto ? "mflow.deploy.auto" : "mflow.deploy", async () => {
-        const quickPick = vscode.window.createQuickPick();
-        quickPick.items = Object.values(PackTypes).map(label => ({ label }));
-        await createQuickPick(
-            Object.values(PackTypes).map(label => ({ label })),
-            async selection => {
-                if (!selection) return;
-                await mflowCmd.deploy(selection, isAuto);
-            }
-        );
+        if (!mflowCmd.verifyRootPath()) return;
+        const result = await multiStepInput("Deploy mflow project", MultiStepTypes.DEPLOY, mflowCmd);
+        if (result && result.isSuc) {
+            await mflowCmd.deploy(isAuto, result.type, result.yn.toUpperCase() === "Y", result.scriptType, result.name);
+        }
     });
 }
 

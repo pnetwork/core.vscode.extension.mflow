@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"

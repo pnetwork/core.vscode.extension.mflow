@@ -31,7 +31,18 @@
 			"    binding:",
 			"    - property: $3",
 			"      value: $4",
-			"      type: '${5:string|number|array|object}'"
+			"      type: '${5:string|number|array|object|boolean}'"
+		],
+		"description": "edge generator"
+	},
+	"mflow: edge metadata": {
+		"prefix": "edges.metadata",
+		"body": [
+			"metadata:",
+			"  binding:",
+			"  - property: $1",
+			"    value: $2",
+			"    type: '${5:string|number|array|object|boolean}'"
 		],
 		"description": "edge generator"
 	},
@@ -48,9 +59,17 @@
 			"    binding:",
 			"    - property: $6",
 			"      value: $7",
-			"      type: '${8:string|number|array|object}'"
+			"      type: '${8:string|number|array|object|boolean}'"
 		],
 		"description": "edge selector generator"
+	},
+	"mflow: edge no property generator": {
+		"prefix": "edges.source.noproperty",
+		"body": [
+			"source: '$1'",
+			"  target: '$2'"
+		],
+		"description": "edge no property generator"
 	},
 	"mflow: cron trigger": {
 		"prefix": "type cron trigger",
@@ -73,7 +92,7 @@
 		"body": [
 			"property: $1",
 			"  value: ${2}",
-			"  type: '${3:string|number|array|object}'"
+			"  type: '${3:string|number|array|object|boolean}'"
 		],
 		"description": "binding action property"
 	}
