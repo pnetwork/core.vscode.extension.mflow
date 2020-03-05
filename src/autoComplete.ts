@@ -165,7 +165,6 @@ export async function autoComplete(
 ): Promise<vscode.CompletionItem[]> {
     const line = document.lineAt(position).text.substring(0, position.character);
     const lineText = line.match(/(\d)\.([^\s]+\.)?/);
-    ouput.appendLine(`Auto complete typing text(${line}) matches(${lineText})`);
     if (lineText && lineText.length > 1 && wfYaml && wfYaml.graph) {
         let autoComplete: AutoComplete;
         const lineTexts =

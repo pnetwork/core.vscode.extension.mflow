@@ -27,6 +27,7 @@ interface QuickPickParameters<T extends QuickPickItem> {
     activeItem?: T;
     placeholder?: string;
     buttons?: QuickInputButton[];
+    value?: string;
 }
 
 export class MultiStepInput {
@@ -73,7 +74,8 @@ export class MultiStepInput {
         items,
         activeItem,
         placeholder,
-        buttons
+        buttons,
+        value
     }: P): Promise<any> {
         const disposables: Disposable[] = [];
         try {
@@ -84,6 +86,7 @@ export class MultiStepInput {
                 input.totalSteps = totalSteps;
                 input.placeholder = placeholder;
                 input.items = items;
+                if (value) input.value = value;
                 if (activeItem) {
                     input.activeItems = [activeItem];
                 }

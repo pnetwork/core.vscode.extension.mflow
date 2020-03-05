@@ -67,14 +67,17 @@ export async function multiStepInput(
             totalSteps: 3,
             placeholder: "Select project location",
             items: items,
-            activeItem: undefined
+            activeItem: undefined,
+            value: step.uri?.fsPath || undefined
         });
         const defaultUri = pick.value === "1" ? Uri.parse(pick.label) : undefined;
-        const folderUri = await createBrowseFolder(defaultUri);
-        if (!folderUri) {
-            return (input: MultiStepInput): Promise<InputStep> => selectLocation(input, step);
+        if (pick.value !== "1") {
+            const folderUri = await createBrowseFolder(defaultUri);
+            if (!folderUri) {
+                return (input: MultiStepInput): Promise<InputStep> => selectLocation(input, step);
+            }
+            step.uri = folderUri;
         }
-        step.uri = folderUri;
         return (input: MultiStepInput): Promise<InputStep> => inputProjectName(input, step);
     }
 
@@ -100,10 +103,11 @@ export async function multiStepInput(
             step: 2,
             totalSteps: 3,
             items: items,
-            activeItem: undefined
+            activeItem: undefined,
+            value: step.name || undefined
         });
-
-        step.name = scriptSelect.detail;
+        step.name = scriptSelect.label;
+        step.uri = Uri.parse(scriptSelect.detail);
         step.scriptType = scriptSelect.description;
         return (input: MultiStepInput): Promise<void> => askOverwrite(input, step);
     }
@@ -115,7 +119,8 @@ export async function multiStepInput(
             step: 1,
             totalSteps: 3,
             items: items,
-            activeItem: undefined
+            activeItem: undefined,
+            value: step.type || undefined
         });
         step.type = result ? result.label : "";
         if (step.type === PackTypes.SCRIPT) {
@@ -140,7 +145,7 @@ export async function multiStepInput(
         if (result.type && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Deploy mflow Project`);
+            window.showInformationMessage(`Deploy mflow Project to Marvel`);
         } else {
             result.isSuc = false;
         }

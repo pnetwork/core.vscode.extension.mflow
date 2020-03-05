@@ -120,7 +120,7 @@ function deployCmd(isAuto: boolean): vscode.Disposable {
         if (!mflowCmd.verifyRootPath()) return;
         const result = await multiStepInput("Deploy mflow project", MultiStepTypes.DEPLOY, mflowCmd);
         if (result && result.isSuc) {
-            await mflowCmd.deploy(isAuto, result.type, result.yn.toUpperCase() === "Y", result.scriptType, result.name);
+            await mflowCmd.deploy(isAuto, result.type, result.yn.toUpperCase() === "Y", result.scriptType, result.uri);
         }
     });
 }

@@ -263,20 +263,20 @@ export class MFlowCommand {
      * @param type: Select pack type.
      * @param isOverwrite: Is overwrite marvel script/wf.
      * @param scriptType: Select script type.
-     * @param scriptPath: The script path.
+     * @param scriptUri: The script path.
      */
     public async deploy(
         isAuto: boolean,
         type: PackTypes,
         isOverwrite: boolean,
         scriptType?: ScriptTypes,
-        scriptPath?: string
+        scriptUri?: Uri
     ): Promise<void> {
         if (!this.verifyRootPath()) return;
         let option = isOverwrite ? "-y " : "";
         option = isAuto ? option + " --autobuildpush --autopack" : option;
         if (type === PackTypes.SCRIPT) {
-            option = `-p ${scriptPath} ` + option;
+            option = `-p ${scriptUri?.fsPath} ` + option;
             this.sendTerminal(`${this.mflowPath} ${scriptType} deploy ${option} `);
         } else {
             option = type === PackTypes.ALL ? "-a " + option : option;
