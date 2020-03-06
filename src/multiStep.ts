@@ -1,8 +1,8 @@
 import { window, Uri } from "vscode";
 import { MultiStepInput, InputStep } from "./basicMultiStepInput";
 import { createBrowseFolder } from "./basicInput";
-import { ScriptTypes, PackTypes, MFlowCommand } from "./commands";
-// import { stat } from "fs";
+import { ScriptTypes, PackTypes } from "./basicCliComands";
+import { MflowCommand } from "./commands";
 
 /**
  * Multiple step types.
@@ -12,6 +12,9 @@ export enum MultiStepTypes {
     DEPLOY
 }
 
+/**
+ * Multi-step result.
+ */
 interface StepResult {
     isSuc: boolean;
     title: string;
@@ -20,6 +23,15 @@ interface StepResult {
     yn: string;
     scriptType: ScriptTypes;
     type: PackTypes;
+}
+
+/**
+ * Verify input text is Y or N. (not case-sensitive)
+ * @param input: Input text.
+ */
+function verifyYesorNo(input: string): boolean {
+    input = input.toUpperCase();
+    return input === "Y" || input === "N";
 }
 
 /**
@@ -32,7 +44,7 @@ interface StepResult {
 export async function multiStepInput(
     title: string,
     multiStepType: MultiStepTypes,
-    mflowCmd?: MFlowCommand
+    mflowCmd?: MflowCommand
 ): Promise<StepResult> {
     async function askCreateSample(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
         step.yn = await input.showInputBox({
@@ -42,10 +54,7 @@ export async function multiStepInput(
             value: step.yn || "",
             prompt: "Create a sample project?",
             placeHolder: "Y/N",
-            validate: text => {
-                text = text.toUpperCase();
-                if (text !== "Y" && text !== "N") return "Input value should be Y or N.";
-            }
+            validate: text => (!verifyYesorNo(text) ? "Input value should be Y or N." : undefined)
         });
     }
     async function inputProjectName(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
@@ -89,10 +98,7 @@ export async function multiStepInput(
             value: step.yn || "",
             prompt: "Overwrite existing scripts on Marvin ? ",
             placeHolder: "Y/N",
-            validate: text => {
-                text = text.toUpperCase();
-                if (text !== "Y" && text !== "N") return "Input value should be Y or N.";
-            }
+            validate: text => (!verifyYesorNo(text) ? "Input value should be Y or N." : undefined)
         });
     }
 

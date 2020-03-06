@@ -1,312 +1,189 @@
-import { window, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
-import child from "child_process";
+import { window, ViewColumn, commands, Disposable, languages, TextDocument, CompletionItem } from "vscode";
 import path from "path";
+import { createInputBox, createQuickPick, execCommandCallback } from "./basicInput";
+import { multiStepInput, MultiStepTypes } from "./multiStep";
+import { ScriptTypes, PackTypes, CliCommands } from "./basicCliComands";
+import { autoComplete } from "./autoComplete";
+import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
-import fs from "fs";
-import { activeMflowTerminal, createQuickPick, execCommandCallback } from "./basicInput";
+import child from "child_process";
 
 /**
- * Package source type.
+ * All Commands
  */
-export enum PackTypes {
-    ALL = "The mflow Project",
-    SCRIPT = "Only Script",
-    WORKFLOW = "Only Workflow"
-}
+export class MflowCommand extends CliCommands {
+    readonly scriptNameReg = new RegExp("^[a-z0-9]+$");
 
-/**
- * Script type.
- */
-export enum ScriptTypes {
-    BLCKS = "blcks",
-    ANSIBLE = "ansible",
-    SHELL = "shell"
-}
-
-/**
- * mflow Commands
- */
-export class MFlowCommand {
-    readonly noRootPathErrorMsg = "Please create or open mflow project first!";
-    readonly scriptInstalledConf = "packages.json";
-    readonly overwirteQ = "Overwrite existing scripts on Marvin ? ";
-
-    constructor(public mflowPath: string, public rootPath: string, public output: OutputChannel) {
-        this.mflowPath = mflowPath;
-        this.rootPath = rootPath;
-        this.output = output;
+    public showVersionCmd(): Disposable {
+        return commands.registerCommand("mflow.show.version", () => this.getVersion());
     }
 
-    /**
-     * Verify the workspece path exist or not.
-     */
-    public verifyRootPath(): boolean {
-        if (!this.rootPath) {
-            window.showErrorMessage(this.noRootPathErrorMsg);
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Get scripts from wf template.
-     * i.e.[{
-     * "scriptId": "callservice",
-     * "scriptType": "ansible/blcks/shell",
-     * "scriptPath": "User/xxx/blcks.python.wf.callservice/",
-     * "scriptSchemaPath": "User/xxx/blcks.python.wf.callservice/callservice.para"
-     * }]
-     */
-    private getScriptsFromWfTemplate(): any[] {
-        const buffer = child.execFileSync(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath });
-        let result: any;
-        try {
-            result = yaml.safeLoad(buffer.toString());
-        } catch (e) {
-            throw Error("Workflow template yaml load fail!");
-        }
-        return result;
-    }
-
-    /**
-     * Get scripts in workspace/src folder
-     */
-    public getScriptQuickPickItems(): any[] {
-        const items: any[] = [];
-        try {
-            const result = this.getScriptsFromWfTemplate();
-            if (result) {
-                result.forEach(i => items.push({ label: i.scriptId, detail: i.scriptPath, description: i.scriptType }));
+    public createProjectCmd(): Disposable {
+        return commands.registerCommand("mflow.create.project", async () => {
+            const result = await multiStepInput("Create mflow project", MultiStepTypes.CREATE_PROJECT);
+            if (result && result.isSuc) {
+                await this.createProject(result.name, result.uri, result.yn.toUpperCase() === "Y");
             }
-        } catch (e) {
-            window.showErrorMessage("Please check workflow template is in the right format!");
-        }
-        return items;
+        });
     }
 
-    /**
-     * Excute commands on terminal view.
-     * @param commands: commands.
-     */
-    private sendTerminal(...commands: string[]): void {
-        if (!(commands && commands.length > 0)) throw Error("commands mush has value.");
-        const terminal = activeMflowTerminal();
-        commands.forEach(value => terminal.sendText(value));
-        terminal.show();
-    }
-
-    /**
-     * Get mflow version.
-     */
-    public getVersion(): void {
-        this.output.appendLine(`Show version.`);
-        this.sendTerminal(`${this.mflowPath} -V`);
-    }
-
-    /**
-     * Create mflow project.
-     * @param name: mflow project name.
-     * @param uri: where the project created.
-     * @param isGenSample: is generator sample wf template.
-     */
-    public async createProject(name: string, uri: Uri, isGenSample: boolean): Promise<void> {
-        this.output.appendLine(`Create mflow project ${name} in ${uri.fsPath}.`);
-        const openFolder = execCommandCallback(() => {
-            const workspaceUri: Uri = Uri.parse(uri.fsPath + "/" + name);
-            commands.executeCommand("vscode.openFolder", workspaceUri);
-        }, this.output);
-        const getCmd = isGenSample ? "-y --example" : "-y";
-        child.execFile(`${this.mflowPath}`, ["create", getCmd, `${name}`], { cwd: uri.fsPath }, openFolder);
-    }
-
-    /**
-     * Create script project under workspace/src.
-     * @param scriptType: might be blcks/ansible/shell.
-     * @param name: the script name.
-     */
-    public async createScript(scriptType: ScriptTypes, name: string): Promise<void> {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Create ${scriptType} project ${name}.`);
-        const openFile = execCommandCallback(() => {
-            const paraFile = Uri.parse(path.join(this.rootPath, "src", scriptType, name, `${name}.para`));
-            commands.executeCommand("vscode.open", paraFile);
-        }, this.output);
-        child.execFile(`${this.mflowPath}`, [scriptType, "create", `${name}`], { cwd: this.rootPath }, openFile);
-    }
-
-    /**
-     * Install script id(with version or not).
-     * @param scriptId: might be the scriptId/scriptId with version/all.
-     */
-    public installScript(scriptId: string): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Install script ${scriptId}.`);
-        scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.mflowPath} install ${scriptId}`);
-    }
-
-    /**
-     * Get installed script list.
-     */
-    public getInstalledScript(): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Show installed script.`);
-        this.sendTerminal(`${this.mflowPath} install -l`);
-    }
-
-    /**
-     * Uninstall script.
-     * @param scriptId: script id.
-     */
-    public uninstallScript(scriptId: string): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Uninstall script ${scriptId}.`);
-        this.sendTerminal(`${this.mflowPath} uninstall ${scriptId}`);
-    }
-
-    /**
-     * Show remote script.
-     * @param scriptId: script id.
-     */
-    public remoteScript(scriptId: string): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Remote script ${scriptId}.`);
-        scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.mflowPath} remote ${scriptId} -l`);
-    }
-
-    /**
-     * Up the script, router, enviroment containers
-     */
-    public up(): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Up containers.`);
-        this.sendTerminal(`${this.mflowPath} up`);
-    }
-
-    /**
-     * Auto up containers and execute the wf template graph.yml.
-     */
-    public run(): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Run.`);
-        this.sendTerminal(`${this.mflowPath} run --auto`);
-    }
-
-    /**
-     * Down the script, router, enviroment containers.
-     */
-    public down(): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Down containers.`);
-        this.sendTerminal(`${this.mflowPath} down -a`);
-    }
-
-    /**
-     * View detail logs by scriptId(or all).
-     * @param scriptId: the script id or all.
-     */
-    public logs(scriptId: string): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Show logs ${scriptId}.`);
-        scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.mflowPath} logs ${scriptId}`);
-    }
-
-    /**
-     * Build and push the images depend on packType.
-     * @param itemType: Select script type.
-     */
-    public async buildPush(itemType: QuickPickItem): Promise<void> {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Build and push ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
-            const scripts = this.getScriptQuickPickItems();
-            await createQuickPick(scripts, scriptSelect => {
-                if (!scriptSelect) return;
-                const scriptPath = scriptSelect.detail;
-                const scriptType = scriptSelect.description;
-                this.sendTerminal(
-                    `${this.mflowPath} ${scriptType} build -p ${scriptPath}`,
-                    `${this.mflowPath} ${scriptType} push -p ${scriptPath}`
-                );
+    public createScriptCmd(scriptType: ScriptTypes): Disposable {
+        return commands.registerCommand(`mflow.${scriptType}.create`, async () => {
+            const name = await createInputBox(`Please enter ${scriptType} name: `, undefined, text => {
+                if (!this.scriptNameReg.test(text)) {
+                    return "Script name should be number(0-9) or lowercase letter(a-z).";
+                }
             });
-        } else {
-            this.sendTerminal(`${this.mflowPath} build`, `${this.mflowPath} push`);
-        }
+            if (!name) return;
+            await this.createScript(scriptType, name);
+        });
     }
 
-    /**
-     * Pack the project depend on packType.
-     * @param itemType: Select script type.
-     */
-    public async pack(itemType: QuickPickItem): Promise<void> {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Pack ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
-            const scripts = this.getScriptQuickPickItems();
-            await createQuickPick(scripts, scriptSelect => {
-                if (!scriptSelect) return;
-                const scriptPath = scriptSelect.detail;
-                const scriptType = scriptSelect.description;
-                this.sendTerminal(`${this.mflowPath} ${scriptType} pack -p ${scriptPath} --auto-pos`);
+    public installScriptCmd(): Disposable {
+        return commands.registerCommand("mflow.install.script", async () => {
+            const scriptId = await createInputBox(
+                "Please enter script id: ",
+                "notification or notification==0.5.0 or *"
+            );
+            if (!scriptId) {
+                return;
+            }
+            this.installScript(scriptId);
+        });
+    }
+
+    public showInstalledScriptCmd(): Disposable {
+        return commands.registerCommand("mflow.show.installed", () => {
+            this.getInstalledScript();
+        });
+    }
+
+    public uninstallScriptCmd(): Disposable {
+        return commands.registerCommand("mflow.uninstall.script", async () => {
+            const scriptId = await createInputBox("Please enter script id: ", "notification");
+            if (!scriptId) return;
+            this.uninstallScript(scriptId);
+        });
+    }
+
+    public remoteScriptCmd(): Disposable {
+        return commands.registerCommand("mflow.remote.scripts", async () => {
+            const scriptId = await createInputBox("Please enter script id: ", "notification or *");
+            if (!scriptId) return;
+            this.remoteScript(scriptId);
+        });
+    }
+
+    public upCmd(): Disposable {
+        return commands.registerCommand("mflow.up", () => this.up());
+    }
+
+    public runCmd(): Disposable {
+        return commands.registerCommand("mflow.run", () => this.run());
+    }
+
+    public downCmd(): Disposable {
+        return commands.registerCommand("mflow.down", () => this.down());
+    }
+
+    public logsCmd(): Disposable {
+        return commands.registerCommand("mflow.logs", async () => {
+            const scriptId = await createInputBox("Please enter script id: ", "notification or *");
+            if (!scriptId) return;
+            this.logs(scriptId);
+        });
+    }
+
+    public buildCmd(): Disposable {
+        return commands.registerCommand("mflow.build", async () => {
+            const items = Object.values(PackTypes)
+                .filter(x => x !== PackTypes.WORKFLOW)
+                .map(label => ({ label }));
+            await commands.executeCommand("workbench.action.files.save");
+            await createQuickPick(items, async selection => {
+                if (!selection) return;
+                await this.buildPush(selection);
             });
-        } else {
-            const packTartget = itemType.label === PackTypes.ALL ? "-a" : "";
-            this.sendTerminal(`${this.mflowPath} pack ${packTartget} --auto-pos`);
-        }
+        });
     }
 
-    /**
-     * Deploy the wf template and script from pack()
-     * @param isAuto: Is auto deploy or only deploy.
-     * @param type: Select pack type.
-     * @param isOverwrite: Is overwrite marvel script/wf.
-     * @param scriptType: Select script type.
-     * @param scriptUri: The script path.
-     */
-    public async deploy(
-        isAuto: boolean,
-        type: PackTypes,
-        isOverwrite: boolean,
-        scriptType?: ScriptTypes,
-        scriptUri?: Uri
-    ): Promise<void> {
-        if (!this.verifyRootPath()) return;
-        let option = isOverwrite ? "-y " : "";
-        option = isAuto ? option + " --autobuildpush --autopack" : option;
-        if (type === PackTypes.SCRIPT) {
-            option = `-p ${scriptUri?.fsPath} ` + option;
-            this.sendTerminal(`${this.mflowPath} ${scriptType} deploy ${option} `);
-        } else {
-            option = type === PackTypes.ALL ? "-a " + option : option;
-            this.sendTerminal(`${this.mflowPath} deploy ${option}`);
-        }
+    public deployCmd(isAuto: boolean): Disposable {
+        return commands.registerCommand(isAuto ? "mflow.deploy.auto" : "mflow.deploy", async () => {
+            if (!this.verifyRootPath()) return;
+            const result = await multiStepInput("Deploy mflow project", MultiStepTypes.DEPLOY, this);
+            if (result && result.isSuc) {
+                await this.deploy(isAuto, result.type, result.yn.toUpperCase() === "Y", result.scriptType, result.uri);
+            }
+        });
     }
 
-    public buildWfGraphWebView(panel: import("vscode").WebviewPanel): string {
-        const result = child.execFileSync(`${this.mflowPath}`, ["graph"], { cwd: this.rootPath });
-        let img = path.join(this.rootPath, ".mflow", "graph.gv.png");
-        if (!fs.existsSync(img)) {
-            this.output.appendLine(result.toString());
-            window.showErrorMessage(`Workflow template graph generator fail! ${result}`);
-            return "";
-        }
+    public packCmd(): Disposable {
+        return commands.registerCommand("mflow.pack", async () => {
+            const items = Object.values(PackTypes).map(label => ({ label }));
+            await commands.executeCommand("workbench.action.files.save");
+            await createQuickPick(items, async selection => {
+                if (!selection) return;
+                await this.pack(selection);
+            });
+        });
+    }
 
-        this.output.appendLine("Build graph.");
-        const diskPath = Uri.file(img);
-        img = panel.webview.asWebviewUri(diskPath).toString();
-        return `<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta http-equiv="Content-Security-Policy" >
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Cat Coding</title>
-            </head>
-            <body>
-                <img src="${img}" />
-            </body>
-            </html>`;
+    public viewWf(): Disposable {
+        return commands.registerTextEditorCommand("mflow.view.wf", editor => {
+            if (this.wfUri !== editor.document.fileName) return;
+            const title = this.wfUri ? path.basename(this.wfUri) : "graph.yml";
+            const panel = window.createWebviewPanel("wfGraph", title, ViewColumn.One);
+            panel.webview.html = this.buildWfGraphWebView(panel);
+        });
+    }
+
+    public autoCompleteItems(): Disposable {
+        return languages.registerCompletionItemProvider(
+            { scheme: "file", language: "yaml" },
+            {
+                provideCompletionItems: async (document, position) => {
+                    await commands.executeCommand("workbench.action.files.save");
+                    if (!this.wfUri || !this.wfYaml || !this.rootPath) return;
+                    if (document.fileName !== this.wfUri) return [new CompletionItem("")];
+                    const item = await autoComplete(
+                        document,
+                        position,
+                        this.rootPath,
+                        this.wfYaml,
+                        this.wfScript,
+                        this.output
+                    )
+                        .then(function(response: any) {
+                            return response;
+                        })
+                        .catch(function(error: Error) {
+                            console.log(error);
+                            return [new CompletionItem("")];
+                        });
+                    return item;
+                }
+            },
+            "."
+        );
+    }
+
+    public reloadWfYamlbyWfUri(document: TextDocument): Record<string, any> | undefined {
+        const lang = document.languageId;
+        if (!(this.rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
+        if (lang === "json") {
+            if (document.fileName !== path.join(this.rootPath, "manifest.json")) return;
+            const wfUriNew = getWfUri(this.rootPath);
+            this.wfUri = wfUriNew || this.wfUri;
+        } else {
+            if (!(this.wfUri && document.fileName === this.wfUri)) return;
+            const wfYamlNew = getWfYaml(this.wfUri);
+            this.wfYaml = wfYamlNew || this.wfYaml;
+            if (!wfYamlNew) return;
+            const openFile = execCommandCallback(stdout => {
+                if (!stdout) return;
+                this.wfScript = yaml.safeLoad(stdout.toString());
+            });
+            child.execFile(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
+        }
     }
 }

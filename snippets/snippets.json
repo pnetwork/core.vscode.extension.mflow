@@ -1,6 +1,6 @@
 {
 	"mflow: node generator": {
-		"prefix": "nodes.metadata",
+		"prefix": "nodes metadata",
 		"body": [ 
 			"metadata:",
 			"    type: action",
@@ -10,20 +10,20 @@
 			"      id: $4",
 			"  id: '$1'"
 		],
-		"description": "node generator"
+		"description": "node"
 	},
 	"mflow: node selector generator": {
-		"prefix": "nodes.selector.metadata",
+		"prefix": "nodes selector metadata",
 		"body": [ 
 			"metadata:",
 			"    type: selector",
 			"    title: selector",
 			"  id: '$1'"
 		],
-		"description": "node generator"
+		"description": "node selector"
 	},
 	"mflow: edge generator": {
-		"prefix": "edges.source",
+		"prefix": "edges source",
 		"body": [
 			"source: '$1'",
 			"  target: '$2'",
@@ -33,21 +33,10 @@
 			"      value: $4",
 			"      type: '${5:string|number|array|object|boolean}'"
 		],
-		"description": "edge generator"
-	},
-	"mflow: edge metadata": {
-		"prefix": "edges.metadata",
-		"body": [
-			"metadata:",
-			"  binding:",
-			"  - property: $1",
-			"    value: $2",
-			"    type: '${5:string|number|array|object|boolean}'"
-		],
-		"description": "edge generator"
+		"description": "edge"
 	},
 	"mflow: edge selector generator": {
-		"prefix": "edges.source.selector",
+		"prefix": "edges source selector",
 		"body": [
 			"source: '$1'",
 			"  target: '$2'",
@@ -61,15 +50,35 @@
 			"      value: $7",
 			"      type: '${8:string|number|array|object|boolean}'"
 		],
-		"description": "edge selector generator"
+		"description": "edge selector"
+	},
+	"mflow: edge metadata": {
+		"prefix": "edges metadata",
+		"body": [
+			"metadata:",
+			"  binding:",
+			"  - property: $1",
+			"    value: $2",
+			"    type: '${5:string|number|array|object|boolean}'"
+		],
+		"description": "edge metadata"
 	},
 	"mflow: edge no property generator": {
-		"prefix": "edges.source.noproperty",
+		"prefix": "edges source no property",
 		"body": [
 			"source: '$1'",
 			"  target: '$2'"
 		],
-		"description": "edge no property generator"
+		"description": "edge with no property"
+	},
+	"mflow: action property": {
+		"prefix": "action property",
+		"body": [
+			"property: $1",
+			"  value: ${2}",
+			"  type: '${3:string|number|array|object|boolean}'"
+		],
+		"description": "action property binding"
 	},
 	"mflow: cron trigger": {
 		"prefix": "type cron trigger",
@@ -83,17 +92,8 @@
 		"prefix": "type event trigger",
 		"body": [
 			"type: event",
-			"  data: '${1:event+id}::${2:version}'"
+			"  data: '${1:eventid}::${2:version}'"
 		],
 		"description": "event trigger"
-	},
-	"mflow: action property": {
-		"prefix": "action property",
-		"body": [
-			"property: $1",
-			"  value: ${2}",
-			"  type: '${3:string|number|array|object|boolean}'"
-		],
-		"description": "binding action property"
 	}
 }

@@ -66,11 +66,7 @@ export class ScriptAutoComplete extends AutoComplete {
         for (const i in lineTexts) {
             if (isArray) {
                 isArray = false;
-                if (lineTexts[i].match(/\d/)) {
-                    options = options.items;
-                } else {
-                    options = [];
-                }
+                options = lineTexts[i].match(/\d/) ? options.items : [];
             } else {
                 options = options ? options[lineTexts[i]] : [];
             }
@@ -81,9 +77,7 @@ export class ScriptAutoComplete extends AutoComplete {
                 }
                 case "array": {
                     isArray = true;
-                    if (Number(i) === lineTexts.length - 1) {
-                        options = [];
-                    }
+                    if (Number(i) === lineTexts.length - 1) options = [];
                     break;
                 }
                 default: {
@@ -117,9 +111,8 @@ export class EventAutoComplete extends AutoComplete {
 
     public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
         const eventYaml = this.getSchemaYaml();
-        if (!eventYaml) {
-            return [new vscode.CompletionItem("")];
-        }
+        if (!eventYaml) return [new vscode.CompletionItem("")];
+
         this.ouput.appendLine(`Event auto complete schema loaded success.`);
         let options = eventYaml;
         let isArray = false;

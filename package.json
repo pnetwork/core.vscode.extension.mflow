@@ -2,7 +2,7 @@
 	"name": "mflow-extension",
 	"displayName": "Pentium mflow",
 	"description": "",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -35,6 +35,14 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"languages": [
+			{
+				"id": "yaml",
+				"extensions": [
+					".para"
+				]
+			}
+		],
 		"configuration": {
 			"type": "object",
 			"title": "Pentium mflow",
