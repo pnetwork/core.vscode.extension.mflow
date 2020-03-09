@@ -1,4 +1,4 @@
-import { window, Uri, OutputChannel, commands, QuickPickItem } from "vscode";
+import { window, Uri, OutputChannel, commands, QuickPickItem, TextDocument, Position } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
@@ -321,5 +321,33 @@ export class CliCommands {
                 <img src="${img}" />
             </body>
             </html>`;
+    }
+
+    protected async getTextbyRegex(
+        document: TextDocument,
+        position: Position,
+        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null }
+    ): Promise<RegExpMatchArray | null | undefined> {
+        await commands.executeCommand("workbench.action.files.save");
+        if (!this.wfUri || !this.wfYaml || !this.rootPath || !this.wfScript) return;
+        if (document.fileName !== this.wfUri) return;
+
+        const line = document.lineAt(position).text.substring(0, position.character);
+        const lineText = line.match(matchRegex);
+        if (lineText && lineText.length > 1) {
+            return lineText;
+        }
+    }
+
+    protected async getScriptbyRegex(
+        document: TextDocument,
+        position: Position,
+        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null }
+    ): Promise<any[] | undefined> {
+        const lineText = await this.getTextbyRegex(document, position, matchRegex);
+        if (lineText && lineText.length > 1) {
+            const scriptId = document.getText(document.getWordRangeAtPosition(position));
+            return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
+        }
     }
 }

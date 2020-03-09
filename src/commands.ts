@@ -1,4 +1,16 @@
-import { window, ViewColumn, commands, Disposable, languages, TextDocument, CompletionItem } from "vscode";
+import {
+    window,
+    ViewColumn,
+    commands,
+    Disposable,
+    languages,
+    TextDocument,
+    CompletionItem,
+    Location,
+    Uri,
+    Position,
+    Hover
+} from "vscode";
 import path from "path";
 import { createInputBox, createQuickPick, execCommandCallback } from "./basicInput";
 import { multiStepInput, MultiStepTypes } from "./multiStep";
@@ -7,6 +19,7 @@ import { autoComplete } from "./autoComplete";
 import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
 import child from "child_process";
+import fs from "fs";
 
 /**
  * All Commands
@@ -137,36 +150,6 @@ export class MflowCommand extends CliCommands {
         });
     }
 
-    public autoCompleteItems(): Disposable {
-        return languages.registerCompletionItemProvider(
-            { scheme: "file", language: "yaml" },
-            {
-                provideCompletionItems: async (document, position) => {
-                    await commands.executeCommand("workbench.action.files.save");
-                    if (!this.wfUri || !this.wfYaml || !this.rootPath) return;
-                    if (document.fileName !== this.wfUri) return [new CompletionItem("")];
-                    const item = await autoComplete(
-                        document,
-                        position,
-                        this.rootPath,
-                        this.wfYaml,
-                        this.wfScript,
-                        this.output
-                    )
-                        .then(function(response: any) {
-                            return response;
-                        })
-                        .catch(function(error: Error) {
-                            console.log(error);
-                            return [new CompletionItem("")];
-                        });
-                    return item;
-                }
-            },
-            "."
-        );
-    }
-
     public reloadWfYamlbyWfUri(document: TextDocument): Record<string, any> | undefined {
         const lang = document.languageId;
         if (!(this.rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
@@ -185,5 +168,60 @@ export class MflowCommand extends CliCommands {
             });
             child.execFile(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
         }
+    }
+
+    public autoCompleteItems(): Disposable {
+        return languages.registerCompletionItemProvider(
+            { scheme: "file", language: "yaml" },
+            {
+                provideCompletionItems: async (document, position) => {
+                    const lineText = await this.getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/);
+                    if (!(lineText && lineText.length > 1 && this.wfYaml?.graph?.nodes)) return;
+                    const item = await autoComplete(lineText, this.rootPath, this.wfYaml, this.wfScript, this.output)
+                        .then(function(response: any) {
+                            return response;
+                        })
+                        .catch(function(error: Error) {
+                            console.log(error);
+                            return [new CompletionItem("")];
+                        });
+                    return item;
+                }
+            },
+            "."
+        );
+    }
+
+    public jumptoDefination(): Disposable {
+        return languages.registerDefinitionProvider(
+            { scheme: "file", language: "yaml" },
+            {
+                provideDefinition: async (document, position) => {
+                    const script = await this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
+                    if (script) {
+                        return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
+                    }
+                }
+            }
+        );
+    }
+
+    public hoverTooltip(): Disposable {
+        return languages.registerHoverProvider(
+            { scheme: "file", language: "yaml" },
+            {
+                provideHover: async (document, position) => {
+                    const script = await this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
+                    if (script) {
+                        const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
+                        return new Hover(
+                            `(${script[0].scriptType}) ${y.id}: ${y.name} \n\n --- \n${
+                                y.description ? y.description : ""
+                            }`
+                        );
+                    }
+                }
+            }
+        );
     }
 }

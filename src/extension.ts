@@ -28,7 +28,9 @@ export function activate(c: vscode.ExtensionContext): void {
         mflowCmd.deployCmd(false),
         mflowCmd.deployCmd(true),
         mflowCmd.viewWf(),
-        mflowCmd.autoCompleteItems()
+        mflowCmd.autoCompleteItems(),
+        mflowCmd.jumptoDefination(),
+        mflowCmd.hoverTooltip()
     ];
 
     const scriptTypeValues = Object.values(ScriptTypes);

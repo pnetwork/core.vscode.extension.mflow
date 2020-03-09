@@ -149,31 +149,27 @@ export class EventAutoComplete extends AutoComplete {
  * @param ouput: The mflow output channel.
  */
 export async function autoComplete(
-    document: vscode.TextDocument,
-    position: vscode.Position,
+    lineText: RegExpMatchArray,
     rootPath: string,
     wfYaml: any,
     wfScript: any,
     ouput: vscode.OutputChannel
 ): Promise<vscode.CompletionItem[]> {
-    const line = document.lineAt(position).text.substring(0, position.character);
-    const lineText = line.match(/(\d)\.([^\s]+\.)?/);
-    if (lineText && lineText.length > 1 && wfYaml && wfYaml.graph) {
-        let autoComplete: AutoComplete;
-        const lineTexts =
-            lineText.length > 2 && lineText[2]
-                ? lineText[2]
-                      .replace(/(\[)+(\d)(\])+/g, ".$2.")
-                      .replace("[]", ".0.")
-                      .split(".")
-                      .filter(x => x)
-                : [];
-        if (lineText[1] === "0") {
-            autoComplete = new EventAutoComplete(rootPath, wfYaml, ouput);
-        } else {
-            autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfScript, ouput);
-        }
-        return autoComplete.getCompletionItems(lineText[1], lineTexts);
+    let autoComplete: AutoComplete;
+    let lineTexts: string[] = [];
+    if (lineText.length > 2 && lineText[2]) {
+        lineTexts = lineText[2]
+            .replace(/(\[)+(\d)(\])+/g, ".$2.")
+            .replace("[]", ".0.")
+            .split(".")
+            .filter(x => x);
     }
-    return [new vscode.CompletionItem("")];
+
+    const scriptMeta = wfYaml.graph.nodes.find((i: { id: string }) => i.id === lineText[1]);
+    if (scriptMeta.metadata.type === "trigger") {
+        autoComplete = new EventAutoComplete(rootPath, wfYaml, ouput);
+    } else {
+        autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfScript, ouput);
+    }
+    return autoComplete.getCompletionItems(lineText[1], lineTexts);
 }
