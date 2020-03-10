@@ -62,6 +62,17 @@ export class CliCommands {
     }
 
     /**
+     * Verify the document is workflow template or not.
+     * @param document: The trigger document.
+     */
+    public verifyIsWftemplate(document: TextDocument): boolean {
+        if (this.rootPath && this.wfUri && document.fileName === this.wfUri && this.wfYaml && this.wfScript) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Get scripts from wf template.
      * i.e.[{
      * "scriptId": "callservice",
@@ -326,13 +337,13 @@ export class CliCommands {
     protected async getTextbyRegex(
         document: TextDocument,
         position: Position,
-        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null }
+        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null },
+        endwithPosition = false
     ): Promise<RegExpMatchArray | null | undefined> {
         await commands.executeCommand("workbench.action.files.save");
-        if (!this.wfUri || !this.wfYaml || !this.rootPath || !this.wfScript) return;
-        if (document.fileName !== this.wfUri) return;
-
-        const line = document.lineAt(position).text.substring(0, position.character);
+        const line = endwithPosition
+            ? document.lineAt(position).text.substring(0, position.character)
+            : document.lineAt(position).text;
         const lineText = line.match(matchRegex);
         if (lineText && lineText.length > 1) {
             return lineText;
@@ -342,9 +353,10 @@ export class CliCommands {
     protected async getScriptbyRegex(
         document: TextDocument,
         position: Position,
-        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null }
+        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null },
+        endwithPosition = false
     ): Promise<any[] | undefined> {
-        const lineText = await this.getTextbyRegex(document, position, matchRegex);
+        const lineText = await this.getTextbyRegex(document, position, matchRegex, endwithPosition);
         if (lineText && lineText.length > 1) {
             const scriptId = document.getText(document.getWordRangeAtPosition(position));
             return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);

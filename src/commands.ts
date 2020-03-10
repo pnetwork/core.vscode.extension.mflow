@@ -143,7 +143,7 @@ export class MflowCommand extends CliCommands {
 
     public viewWf(): Disposable {
         return commands.registerTextEditorCommand("mflow.view.wf", editor => {
-            if (this.wfUri !== editor.document.fileName) return;
+            if (!this.verifyIsWftemplate(editor.document)) return;
             const title = this.wfUri ? path.basename(this.wfUri) : "graph.yml";
             const panel = window.createWebviewPanel("wfGraph", title, ViewColumn.One);
             panel.webview.html = this.buildWfGraphWebView(panel);
@@ -158,8 +158,8 @@ export class MflowCommand extends CliCommands {
             const wfUriNew = getWfUri(this.rootPath);
             this.wfUri = wfUriNew || this.wfUri;
         } else {
-            if (!(this.wfUri && document.fileName === this.wfUri)) return;
-            const wfYamlNew = getWfYaml(this.wfUri);
+            if (!this.verifyIsWftemplate(document)) return;
+            const wfYamlNew = getWfYaml(this.wfUri || "");
             this.wfYaml = wfYamlNew || this.wfYaml;
             if (!wfYamlNew) return;
             const openFile = execCommandCallback(stdout => {
@@ -175,7 +175,8 @@ export class MflowCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideCompletionItems: async (document, position) => {
-                    const lineText = await this.getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/);
+                    if (!this.verifyIsWftemplate(document)) return;
+                    const lineText = await this.getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/, true);
                     if (!(lineText && lineText.length > 1 && this.wfYaml?.graph?.nodes)) return;
                     const item = await autoComplete(lineText, this.rootPath, this.wfYaml, this.wfScript, this.output)
                         .then(function(response: any) {
@@ -197,7 +198,8 @@ export class MflowCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideDefinition: async (document, position) => {
-                    const script = await this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
+                    if (!this.verifyIsWftemplate(document)) return;
+                    const script = await this.getScriptbyRegex(document, position, /id:\s+'?()'?/);
                     if (script) {
                         return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
                     }
@@ -206,19 +208,55 @@ export class MflowCommand extends CliCommands {
         );
     }
 
-    public hoverTooltip(): Disposable {
+    private async nodeScriptTooltip(document: TextDocument, position: Position): Promise<Hover | undefined> {
+        const script = await this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
+        if (script) {
+            const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
+            return new Hover(
+                `    (${script[0].scriptType}) ${y.id}: ${y.name} \n --- \n${y.description ? y.description : ""}`
+            );
+        }
+    }
+
+    private async edgesTooltip(document: TextDocument, position: Position): Promise<Hover | undefined> {
+        const lineText = await this.getTextbyRegex(document, position, /(source|target):\s+'?(\d+)'?/);
+        if (!(lineText && lineText.length > 2 && this.wfYaml?.graph?.nodes)) return;
+
+        const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === lineText[2]);
+        if (!(scriptMeta && scriptMeta.metadata)) return;
+        if (scriptMeta.metadata.type === "trigger") {
+            return new Hover("    trigger node");
+        } else if (scriptMeta.metadata.type === "terminator") {
+            return new Hover("    terminator node");
+        }
+        const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptMeta.metadata.script?.id);
+        if (!script) return;
+
+        const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
+        let str = lineText[1] === "source" ? "[Outputs:]" : "[Iutputs:]";
+        str += `(${script[0].scriptSchemaPath}) \n`;
+        const paramType = lineText[1] === "source" ? "outputs" : "inputs";
+        const outputs = y[paramType];
+        Object.keys(outputs).forEach((i: any) => {
+            const desc = outputs[i].title || outputs[i].description || "";
+            str += `\n     (${outputs[i].type || "None"}) ${i}: ${desc}`;
+        });
+        return new Hover(
+            `    (${script[0].scriptType}) ${y.id}: ${y.name} \n --- \n${y.description ? y.description : ""}\n\n ${str}`
+        );
+    }
+
+    public hoverTooltips(): Disposable {
         return languages.registerHoverProvider(
             { scheme: "file", language: "yaml" },
             {
                 provideHover: async (document, position) => {
-                    const script = await this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
-                    if (script) {
-                        const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
-                        return new Hover(
-                            `(${script[0].scriptType}) ${y.id}: ${y.name} \n\n --- \n${
-                                y.description ? y.description : ""
-                            }`
-                        );
+                    if (!this.verifyIsWftemplate(document)) return;
+                    const tooltip = await this.nodeScriptTooltip(document, position);
+                    if (tooltip) {
+                        return tooltip;
+                    } else {
+                        return this.edgesTooltip(document, position);
                     }
                 }
             }
