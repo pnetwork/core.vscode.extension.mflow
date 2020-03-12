@@ -11,6 +11,7 @@ export function activate(c: vscode.ExtensionContext): void {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
     mflowCmd = new MflowCommand(rootPath, ouputChannel);
+    mflowCmd.checkMflowVersion();
 
     const cmdList = [
         mflowCmd.showVersionCmd(),
