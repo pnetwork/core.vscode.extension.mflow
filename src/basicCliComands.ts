@@ -35,15 +35,6 @@ export class CliCommands {
     wfScript: any;
     mflowPath: string | undefined;
 
-    public checkMflowVersion(): void {
-        const result = child.execFileSync(`${this.mflowPath}`, ["-V"], { cwd: this.rootPath });
-        const version = result.toString().match(/(\d..*)+/);
-        if (version && version.length > 0 && version[0] >= this.mflowReguireVersion) {
-            return;
-        }
-        window.showErrorMessage(`mflow cli tool version must >= ${this.mflowReguireVersion}.`);
-    }
-
     constructor(public rootPath: string, public output: OutputChannel) {
         this.mflowPath = getMFlowPath();
         this.rootPath = rootPath;
@@ -69,6 +60,19 @@ export class CliCommands {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check mflow version require.
+     */
+    public checkMflowVersion(): void {
+        if (this.verifyRootPath()) return;
+        const result = child.execFileSync(`${this.mflowPath}`, ["-V"], { cwd: this.rootPath });
+        const version = result.toString().match(/(\d..*)+/);
+        if (version && version.length > 0 && version[0] >= this.mflowReguireVersion) {
+            return;
+        }
+        window.showErrorMessage(`mflow cli tool version must >= ${this.mflowReguireVersion}.`);
     }
 
     /**
