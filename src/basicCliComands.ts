@@ -29,7 +29,7 @@ export enum ScriptTypes {
  */
 export class CliCommands {
     readonly noRootPathErrorMsg = "Please create or open mflow project first!";
-    readonly mflowReguireVersion = "1.0.0b0";
+    readonly mflowReguireVersion = "1.0.0-beta";
     wfUri: string | undefined;
     wfYaml: any;
     wfScript: any;
@@ -66,8 +66,7 @@ export class CliCommands {
      * Check mflow version require.
      */
     public checkMflowVersion(): void {
-        if (this.verifyRootPath()) return;
-        const result = child.execFileSync(`${this.mflowPath}`, ["-V"], { cwd: this.rootPath });
+        const result = child.execFileSync(`${this.mflowPath}`, ["-V"]);
         const version = result.toString().match(/(\d..*)+/);
         if (version && version.length > 0 && version[0] >= this.mflowReguireVersion) {
             return;
