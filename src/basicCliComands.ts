@@ -152,8 +152,10 @@ export class CliCommands {
             const workspaceUri: Uri = Uri.parse(uri.fsPath + "/" + name);
             commands.executeCommand("vscode.openFolder", workspaceUri);
         }, this.output);
-        const exam = isGenSample ? "--example" : "";
-        child.execFile(`${this.mflowPath}`, ["create", "-y", exam, `${name}`], { cwd: uri.fsPath }, openFolder);
+        const cmd = ["create", "-y"];
+        if (isGenSample) cmd.push("--example");
+        cmd.push(`${name}`);
+        child.execFile(`${this.mflowPath}`, cmd, { cwd: uri.fsPath }, openFolder);
     }
 
     /**

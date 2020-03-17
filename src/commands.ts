@@ -233,7 +233,7 @@ export class MflowCommand extends CliCommands {
         if (!script) return;
 
         const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
-        let str = lineText[1] === "source" ? "[Outputs:]" : "[Iutputs:]";
+        let str = lineText[1] === "source" ? "[Outputs:]" : "[Inputs:]";
         str += `(${script[0].scriptSchemaPath}) \n`;
         const paramType = lineText[1] === "source" ? "outputs" : "inputs";
         const outputs = y[paramType];
