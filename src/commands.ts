@@ -228,6 +228,8 @@ export class MflowCommand extends CliCommands {
             return new Hover("    trigger node");
         } else if (scriptMeta.metadata.type === "terminator") {
             return new Hover("    terminator node");
+        } else if (scriptMeta.metadata.type === "selector") {
+            return new Hover("    selector node");
         }
         const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptMeta.metadata.script?.id);
         if (!script) return;
