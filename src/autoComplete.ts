@@ -86,9 +86,15 @@ export class ScriptAutoComplete extends AutoComplete {
                 }
             }
         }
-
         const dependencies = Object.keys(options || {});
-        return dependencies.map(dep => new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field));
+        return dependencies.map(val => {
+            const item = new vscode.CompletionItem(val, vscode.CompletionItemKind.Field);
+            const name = options[val].name || options[val].title || "";
+            const desc = options[val].description || "";
+            item.detail = `(${options[val].type || "None"}) ${val}: ${name}`;
+            item.documentation = `${desc}`;
+            return item;
+        });
     }
 }
 

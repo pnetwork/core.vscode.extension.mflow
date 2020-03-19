@@ -5,6 +5,7 @@ import yaml from "js-yaml";
 import fs from "fs";
 import { activeMflowTerminal, createQuickPick, execCommandCallback } from "./basicInput";
 import { getWfUri, getWfYaml, getMFlowPath } from "./path";
+import { ScriptAutoComplete } from "./autoComplete";
 
 /**
  * Package source type.
@@ -341,7 +342,7 @@ export class CliCommands {
                 <meta charset="UTF-8">
                 <meta http-equiv="Content-Security-Policy" >
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Cat Coding</title>
+                <title>mflow Grpah</title>
             </head>
             <body>
                 <img src="${img}" />
@@ -349,13 +350,12 @@ export class CliCommands {
             </html>`;
     }
 
-    protected async getTextbyRegex(
+    protected getTextbyRegex(
         document: TextDocument,
         position: Position,
         matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null },
         endwithPosition = false
-    ): Promise<RegExpMatchArray | null | undefined> {
-        await commands.executeCommand("workbench.action.files.save");
+    ): RegExpMatchArray | null | undefined {
         const line = endwithPosition
             ? document.lineAt(position).text.substring(0, position.character)
             : document.lineAt(position).text;
@@ -365,16 +365,24 @@ export class CliCommands {
         }
     }
 
-    protected async getScriptbyRegex(
+    protected getScriptbyRegex(
         document: TextDocument,
         position: Position,
         matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null },
         endwithPosition = false
-    ): Promise<any[] | undefined> {
-        const lineText = await this.getTextbyRegex(document, position, matchRegex, endwithPosition);
-        if (lineText && lineText.length > 1) {
-            const scriptId = document.getText(document.getWordRangeAtPosition(position));
-            return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
-        }
+    ): any[] | undefined {
+        try {
+            const lineText = this.getTextbyRegex(document, position, matchRegex, endwithPosition);
+            if (lineText && lineText.length > 1) {
+                if (lineText[0].match(/^\d.*/)) {
+                    const nodeId = lineText[1];
+                    const auto = new ScriptAutoComplete(this.rootPath, this.wfYaml, this.wfScript, this.output);
+                    return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === auto.getSchemaYaml(nodeId).id);
+                } else {
+                    const scriptId = document.getText(document.getWordRangeAtPosition(position));
+                    return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
+                }
+            }
+        } catch (e) {}
     }
 }

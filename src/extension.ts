@@ -11,6 +11,11 @@ export function activate(c: vscode.ExtensionContext): void {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
     mflowCmd = new MflowCommand(rootPath, ouputChannel);
+    if (vscode.window.activeTextEditor?.document.fileName === mflowCmd.wfUri) {
+        vscode.commands.executeCommand("setContext", "isWfYaml", true);
+    } else {
+        vscode.commands.executeCommand("setContext", "isWfYaml", false);
+    }
 
     const cmdList = [
         mflowCmd.showVersionCmd(),
@@ -47,11 +52,6 @@ export function activate(c: vscode.ExtensionContext): void {
         if (mflowCmd.wfUri !== e?.document?.fileName) vscode.commands.executeCommand("setContext", "isWfYaml", false);
         else vscode.commands.executeCommand("setContext", "isWfYaml", true);
     });
-    if (vscode.window.activeTextEditor?.document.fileName === mflowCmd.wfUri) {
-        vscode.commands.executeCommand("setContext", "isWfYaml", true);
-    } else {
-        vscode.commands.executeCommand("setContext", "isWfYaml", false);
-    }
 }
 
 // this method is called when your extension is deactivated

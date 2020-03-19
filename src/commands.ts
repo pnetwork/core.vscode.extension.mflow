@@ -143,7 +143,10 @@ export class MflowCommand extends CliCommands {
 
     public viewWf(): Disposable {
         return commands.registerTextEditorCommand("mflow.view.wf", editor => {
-            if (!this.verifyIsWftemplate(editor.document)) return;
+            if (!this.verifyIsWftemplate(editor.document)) {
+                window.showErrorMessage("This file is not workflow file!");
+                return;
+            }
             const title = this.wfUri ? path.basename(this.wfUri) : "graph.yml";
             const panel = window.createWebviewPanel("wfGraph", title, ViewColumn.One);
             panel.webview.html = this.buildWfGraphWebView(panel);
@@ -176,7 +179,8 @@ export class MflowCommand extends CliCommands {
             {
                 provideCompletionItems: async (document, position) => {
                     if (!this.verifyIsWftemplate(document)) return;
-                    const lineText = await this.getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/, true);
+                    await commands.executeCommand("workbench.action.files.save");
+                    const lineText = this.getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/, true);
                     if (!(lineText && lineText.length > 1 && this.wfYaml?.graph?.nodes)) return;
                     const item = await autoComplete(lineText, this.rootPath, this.wfYaml, this.wfScript, this.output)
                         .then(function(response: any) {
@@ -199,17 +203,35 @@ export class MflowCommand extends CliCommands {
             {
                 provideDefinition: async (document, position) => {
                     if (!this.verifyIsWftemplate(document)) return;
-                    const script = await this.getScriptbyRegex(document, position, /id:\s+'?()'?/);
-                    if (script) {
-                        return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
-                    }
+                    await commands.executeCommand("workbench.action.files.save");
+                    const script = this.getScriptbyRegex(document, position, /id:\s+'?()'?/);
+                    if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
+                    // script = this.getScriptbyRegex(document, position, /(\d)\.([^\s]+)?/);
+                    // if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
+
+                    // const lineText = this.getTextbyRegex(document, position, /(\d)\.([^\s]+)?/);
+                    // if (lineText && lineText.length > 1) {
+                    //     const nodeId = lineText[1];
+                    //     let line = 0;
+                    //     const regex = new RegExp(`id:\\s+'?(${nodeId})'?`);
+                    //     for (let i = 0; i < position.line; i++) {
+                    //         const lineText = document.lineAt(i).text;
+                    //         if (regex.test(lineText)) {
+                    //             console.log(i);
+                    //             console.log(lineText);
+                    //             line = i;
+                    //             break;
+                    //         }
+                    //     }
+                    //     return new Location(document.uri, new Position(line, 0));
+                    // }
                 }
             }
         );
     }
 
-    private async nodeScriptTooltip(document: TextDocument, position: Position): Promise<Hover | undefined> {
-        const script = await this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
+    private nodeScriptTooltip(document: TextDocument, position: Position): Hover | undefined {
+        const script = this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
         if (script) {
             const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
             return new Hover(
@@ -218,9 +240,9 @@ export class MflowCommand extends CliCommands {
         }
     }
 
-    private async edgesTooltip(document: TextDocument, position: Position): Promise<Hover | undefined> {
-        const lineText = await this.getTextbyRegex(document, position, /(source|target):\s+'?(\d+)'?/);
-        if (!(lineText && lineText.length > 2 && this.wfYaml?.graph?.nodes)) return;
+    private edgesTooltip(document: TextDocument, position: Position): Hover | undefined {
+        const lineText = this.getTextbyRegex(document, position, /(source|target):\s+'?(\d+)'?/);
+        if (!(lineText && lineText.length > 2)) return;
 
         const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === lineText[2]);
         if (!(scriptMeta && scriptMeta.metadata)) return;
@@ -248,18 +270,80 @@ export class MflowCommand extends CliCommands {
         );
     }
 
+    private propertyTooltip(document: TextDocument, position: Position): Hover | undefined {
+        let lineText = this.getTextbyRegex(document, position, /(\d)\.([^\s]+)?/);
+        let propertyText: string;
+        let nodeId: string | undefined;
+        let inputOutput: string;
+        if (lineText && lineText.length > 2) {
+            nodeId = lineText[1];
+            propertyText = lineText[2];
+            inputOutput = "outputs";
+        } else {
+            lineText = this.getTextbyRegex(document, position, /property:\s+'?(.+)'?/);
+            if (!(lineText && lineText.length > 1)) return;
+            let i = position.line;
+            for (i; i > 0; i--) {
+                const lineText = document.lineAt(i).text;
+                const line = lineText.match(/target:\s+'?(\d+)'?/);
+                if (line && line.length > 1) {
+                    nodeId = line[1];
+                    break;
+                }
+            }
+            if (!nodeId) return;
+            propertyText = lineText[1];
+            inputOutput = "inputs";
+        }
+
+        const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === nodeId);
+        if (!(scriptMeta && scriptMeta.metadata && scriptMeta.metadata.type !== "trigger")) return;
+        const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptMeta.metadata.script?.id);
+        if (!script) return;
+        const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
+
+        const propertyTexts = propertyText
+            .replace(/(\[\d\])+/g, "")
+            .replace(/(\.\d)+/g, "")
+            .replace("[]", "")
+            .split(".")
+            .filter(x => x);
+
+        let property: any;
+        for (const i of propertyTexts) {
+            if (property) {
+                if (property.properties) {
+                    property = property.properties[i];
+                } else if (property.items?.properties) {
+                    property = property.items.properties[i];
+                }
+            } else {
+                property = y[inputOutput][i];
+            }
+        }
+
+        const name = property.name || property.title || "";
+        const desc = property.description || "";
+        return new Hover(`    (${property.type || "None"}) ${propertyText}: ${name} \n ${desc}`);
+    }
+
     public hoverTooltips(): Disposable {
         return languages.registerHoverProvider(
             { scheme: "file", language: "yaml" },
             {
                 provideHover: async (document, position) => {
                     if (!this.verifyIsWftemplate(document)) return;
-                    const tooltip = await this.nodeScriptTooltip(document, position);
+                    if (!this.wfYaml?.graph?.nodes) return;
+                    await commands.executeCommand("workbench.action.files.save");
+                    let tooltip = this.nodeScriptTooltip(document, position);
                     if (tooltip) {
                         return tooltip;
-                    } else {
-                        return this.edgesTooltip(document, position);
                     }
+                    tooltip = this.edgesTooltip(document, position);
+                    if (tooltip) {
+                        return tooltip;
+                    }
+                    return this.propertyTooltip(document, position);
                 }
             }
         );
