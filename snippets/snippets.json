@@ -1,0 +1,99 @@
+{
+	"mflow: node generator": {
+		"prefix": "nodes metadata",
+		"body": [ 
+			"metadata:",
+			"    type: action",
+			"    title: '$2'",
+			"    description: '$3'",
+			"    script: ",
+			"      id: $4",
+			"  id: '$1'"
+		],
+		"description": "node"
+	},
+	"mflow: node selector generator": {
+		"prefix": "nodes selector metadata",
+		"body": [ 
+			"metadata:",
+			"    type: selector",
+			"    title: selector",
+			"  id: '$1'"
+		],
+		"description": "node selector"
+	},
+	"mflow: edge generator": {
+		"prefix": "edges source",
+		"body": [
+			"source: '$1'",
+			"  target: '$2'",
+			"  metadata:",
+			"    binding:",
+			"    - property: $3",
+			"      value: $4",
+			"      type: '${5:string|number|array|object|boolean}'"
+		],
+		"description": "edge"
+	},
+	"mflow: edge selector generator": {
+		"prefix": "edges source selector",
+		"body": [
+			"source: '$1'",
+			"  target: '$2'",
+			"  metadata:",
+			"    filters:",
+			"      property: $3",
+			"      operator: '${4:>|==|<|!=|>=|<=}'",
+			"      value: $5",
+			"    binding:",
+			"    - property: $6",
+			"      value: $7",
+			"      type: '${8:string|number|array|object|boolean}'"
+		],
+		"description": "edge selector"
+	},
+	"mflow: edge metadata": {
+		"prefix": "edges metadata",
+		"body": [
+			"metadata:",
+			"  binding:",
+			"  - property: $1",
+			"    value: $2",
+			"    type: '${5:string|number|array|object|boolean}'"
+		],
+		"description": "edge metadata"
+	},
+	"mflow: edge no property generator": {
+		"prefix": "edges source no property",
+		"body": [
+			"source: '$1'",
+			"  target: '$2'"
+		],
+		"description": "edge with no property"
+	},
+	"mflow: action property": {
+		"prefix": "action property",
+		"body": [
+			"property: $1",
+			"  value: ${2}",
+			"  type: '${3:string|number|array|object|boolean}'"
+		],
+		"description": "action property binding"
+	},
+	"mflow: cron trigger": {
+		"prefix": "type cron trigger",
+		"body": [
+			"type: cron",
+			"  data: '${1:0 * * * *}'"
+		],
+		"description": "cron trigger"
+	},
+	"mflow: event trigger": {
+		"prefix": "type event trigger",
+		"body": [
+			"type: event",
+			"  data: '${1:eventid}::${2:version}'"
+		],
+		"description": "event trigger"
+	}
+}

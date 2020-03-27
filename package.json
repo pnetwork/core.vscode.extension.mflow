@@ -1,0 +1,207 @@
+{
+	"name": "mflow-extension",
+	"displayName": "Pentium mflow",
+	"description": "",
+	"version": "0.1.4",
+	"publisher": "pentium",
+	"engines": {
+		"vscode": "^1.41.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:mflow.show.version",
+		"onCommand:mflow.create.project",
+		"onCommand:mflow.blcks.create",
+		"onCommand:mflow.ansible.create",
+		"onCommand:mflow.shell.create",
+		"onCommand:mflow.show.installed",
+		"onCommand:mflow.install.script",
+		"onCommand:mflow.uninstall.script",
+		"onCommand:mflow.remote.scripts",
+		"onCommand:mflow.up",
+		"onCommand:mflow.run",
+		"onCommand:mflow.down",
+		"onCommand:mflow.logs",
+		"onCommand:mflow.build",
+		"onCommand:mflow.pack",
+		"onCommand:mflow.deploy",
+		"onCommand:mflow.deploy.auto",
+		"onCommand:mflow.view.wf",
+		"onLanguage:yaml",
+		"onLanguage:json",
+		"onWebviewPanel:wfGraph"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"languages": [
+			{
+				"id": "yaml",
+				"extensions": [
+					".para"
+				]
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Pentium mflow",
+			"properties": {
+				"mflow.path": {
+					"type": "string",
+					"default": "",
+					"description": "mflow.path"
+				}
+			}
+		},
+		"commands": [
+			{
+				"command": "mflow.show.version",
+				"title": "mflow: Version"
+			},
+			{
+				"command": "mflow.create.project",
+				"title": "mflow: Create mflow Project"
+			},
+			{
+				"command": "mflow.blcks.create",
+				"title": "mflow: Create Blcks"
+			},
+			{
+				"command": "mflow.ansible.create",
+				"title": "mflow: Create Ansible"
+			},
+			{
+				"command": "mflow.shell.create",
+				"title": "mflow: Create Shell"
+			},
+			{
+				"command": "mflow.show.installed",
+				"title": "mflow: List Installed Scripts"
+			},
+			{
+				"command": "mflow.remote.scripts",
+				"title": "mflow: List Remote Scripts"
+			},
+			{
+				"command": "mflow.install.script",
+				"title": "mflow: Install Script"
+			},
+			{
+				"command": "mflow.uninstall.script",
+				"title": "mflow: Uninstall Script"
+			},
+			{
+				"command": "mflow.up",
+				"title": "mflow: Up"
+			},
+			{
+				"command": "mflow.down",
+				"title": "mflow: Down",
+				"icon": {
+					"light": "./resources/stop-light.svg",
+					"dark": "./resources/stop-dark.svg"
+				}
+			},
+			{
+				"command": "mflow.run",
+				"title": "mflow: Run",
+				"icon": {
+					"light": "./resources/run-light.svg",
+					"dark": "./resources/run-dark.svg"
+				}
+			},
+			{
+				"command": "mflow.logs",
+				"title": "mflow: Logs"
+			},
+			{
+				"command": "mflow.pack",
+				"title": "mflow: Pack"
+			},
+			{
+				"command": "mflow.build",
+				"title": "mflow: Build Push"
+			},
+			{
+				"command": "mflow.deploy",
+				"title": "mflow: Deploy Packed Packages to Marvin"
+			},
+			{
+				"command": "mflow.deploy.auto",
+				"title": "mflow: Deploy to Marvin"
+			},
+			{
+				"command": "mflow.view.wf",
+				"title": "View Workflow Template Graph",
+				"enablement": "isWfYaml"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "mflow.view.wf",
+					"when": "false"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "mflow.down",
+					"when": "resourceLangId == yaml && isWfYaml",
+					"group": "navigation@-1"
+				},
+				{
+					"command": "mflow.run",
+					"when": "resourceLangId == yaml && isWfYaml",
+					"group": "navigation@-2"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "mflow.view.wf",
+					"when": "resourceLangId == yaml",
+					"group": "6_view",
+					"alt": "mflow.view.wf"
+				}
+			]
+		},
+		"snippets": [
+			{
+				"language": "yaml",
+				"path": "./snippets/snippets.json"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint --fix src --ext ts",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {},
+	"dependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/js-yaml": "^3.12.2",
+		"@types/mocha": "^7.0.1",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.41.0",
+		"@typescript-eslint/eslint-plugin": "^2.18.0",
+		"@typescript-eslint/parser": "^2.18.0",
+		"eslint": "^6.8.0",
+		"eslint-config-prettier": "^6.10.0",
+		"eslint-config-standard": "^14.1.0",
+		"eslint-plugin-import": "^2.20.1",
+		"eslint-plugin-node": "^11.0.0",
+		"eslint-plugin-prettier": "^3.1.2",
+		"eslint-plugin-promise": "^4.2.1",
+		"eslint-plugin-standard": "^4.0.1",
+		"glob": "^7.1.6",
+		"graphviz": "0.0.9",
+		"mocha": "^7.0.1",
+		"prettier": "^1.19.1",
+		"typescript": "^3.7.5",
+		"vscode-test": "^1.3.0"
+	}
+}

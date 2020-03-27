@@ -1,0 +1,51 @@
+---
+name: testEvent
+inputParamsStr:
+- updatedBy:
+    name: core
+    id: U-h9vjrh4fi4z
+  policies:
+  - name: 项目管理员权限
+    description: 項目管理員的預設管理权限，擁有授權資產以外的大部分權限
+    id: PL-bju0t9geg
+  description: 项目管理员
+  project:
+    name: ansen_tests
+    projectType: NORMAL
+    description: ''
+    id: PJ-bju0t9g9o
+  permission:
+    READ: true
+    UPDATE: true
+    DELETE: true
+  users:
+  - name: pentium
+    account: pentium
+    id: U-djy839rrr
+  - name: Chelsea
+    account: chelsea
+    id: U-cjvqco3n8
+  isHide: false
+  createdAt: 1554271737
+  isDefault: true
+  protectActions: []
+  createdBy:
+    name: core
+    id: U-h9vjrh4fi4z
+  name: 项目管理员
+  id: R-bju0t9g9p
+  updatedAt: 1579665209
+eventType: asset.userRole.create.success
+reservation:
+  after:
+    roles:
+    - updatedBy:
+        name: core
+        id: U-h9vjrh4fi4z
+      users:
+      - name: pentium
+        account: pentium
+        id: U-djy839rrr
+      name: 项目管理员
+      id: XXXXX
+    haveNormalManagerRole: true
