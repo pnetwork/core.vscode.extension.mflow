@@ -18,11 +18,8 @@ abstract class AutoComplete {
     config: any;
     gbConfig: any;
     constructor(public rootPath: string, public wfYaml: any, public ouput: OutputChannel) {
-        this.rootPath = rootPath;
-        this.wfYaml = wfYaml;
         this.config = getConfig(this.rootPath);
         this.gbConfig = getGlobalConfig();
-        this.ouput = ouput;
     }
 
     protected abstract getSchemaYaml(nodeId?: string): any;
@@ -72,7 +69,7 @@ export class ScriptAutoComplete extends AutoComplete {
         for (const i in lineTexts) {
             if (isArray) {
                 isArray = false;
-                options = lineTexts[i].match(/\d/) ? options.items : [];
+                options = !lineTexts[i].match(/\d/) ? options.items : {};
             } else {
                 options = options ? options[lineTexts[i]] : [];
             }
@@ -83,11 +80,11 @@ export class ScriptAutoComplete extends AutoComplete {
                 }
                 case "array": {
                     isArray = true;
-                    if (Number(i) === lineTexts.length - 1) options = [];
+                    if (Number(i) === lineTexts.length - 1) options = {};
                     break;
                 }
                 default: {
-                    options = [];
+                    options = {};
                     break;
                 }
             }
@@ -134,15 +131,15 @@ export class EventAutoComplete extends AutoComplete {
                 if (lineTexts[i].match(/\d/) && (options[0] instanceof Object || Array.isArray(options[0]))) {
                     options = options[0];
                 } else {
-                    options = [];
+                    options = {};
                 }
             } else {
-                options = options ? options[lineTexts[i]] : [];
+                options = options ? options[lineTexts[i]] : {};
             }
             if (Array.isArray(options)) {
                 isArray = true;
                 if (Number(i) === lineTexts.length - 1) {
-                    options = [];
+                    options = {};
                 }
             }
         }

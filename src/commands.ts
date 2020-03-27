@@ -279,11 +279,8 @@ export class MflowCommand extends CliCommands {
         const script = this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptMeta.metadata.script?.id);
         if (!script) return;
         const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
-
         const propertyTexts = propertyText
-            .replace(/(\[\d\])+/g, "")
-            .replace(/(\.\d)+/g, "")
-            .replace("[]", "")
+            .replace(/\[\d\]|\.\d|\[\]/g, "")
             .split(".")
             .filter(x => x);
 
