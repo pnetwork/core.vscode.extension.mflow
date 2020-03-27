@@ -5,7 +5,6 @@ import {
     Disposable,
     languages,
     TextDocument,
-    CompletionItem,
     Location,
     Uri,
     Position,
@@ -15,11 +14,12 @@ import path from "path";
 import { createInputBox, createQuickPick, execCommandCallback } from "./basicInput";
 import { multiStepInput, MultiStepTypes } from "./multiStep";
 import { ScriptTypes, PackTypes, CliCommands } from "./basicCliComands";
-import { autoComplete } from "./autoComplete";
+import { searchCompletionItems } from "./autoComplete";
 import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
 import child from "child_process";
 import fs from "fs";
+import { getTextbyRegex, getScriptbyRegex } from "./util";
 
 /**
  * All Commands
@@ -180,17 +180,14 @@ export class MflowCommand extends CliCommands {
                 provideCompletionItems: async (document, position) => {
                     if (!this.verifyIsWftemplate(document)) return;
                     await commands.executeCommand("workbench.action.files.save");
-                    const lineText = this.getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/, true);
-                    if (!(lineText && lineText.length > 1 && this.wfYaml?.graph?.nodes)) return;
-                    const item = await autoComplete(lineText, this.rootPath, this.wfYaml, this.wfScript, this.output)
-                        .then(function(response: any) {
-                            return response;
-                        })
-                        .catch(function(error: Error) {
-                            console.log(error);
-                            return [new CompletionItem("")];
-                        });
-                    return item;
+                    return searchCompletionItems(
+                        this.rootPath,
+                        this.wfYaml,
+                        this.wfScript,
+                        this.output,
+                        document,
+                        position
+                    );
                 }
             },
             "."
@@ -204,34 +201,15 @@ export class MflowCommand extends CliCommands {
                 provideDefinition: async (document, position) => {
                     if (!this.verifyIsWftemplate(document)) return;
                     await commands.executeCommand("workbench.action.files.save");
-                    const script = this.getScriptbyRegex(document, position, /id:\s+'?()'?/);
+                    const script = getScriptbyRegex(this.wfScript, document, position, /id:\s+'?()'?/);
                     if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
-                    // script = this.getScriptbyRegex(document, position, /(\d)\.([^\s]+)?/);
-                    // if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
-
-                    // const lineText = this.getTextbyRegex(document, position, /(\d)\.([^\s]+)?/);
-                    // if (lineText && lineText.length > 1) {
-                    //     const nodeId = lineText[1];
-                    //     let line = 0;
-                    //     const regex = new RegExp(`id:\\s+'?(${nodeId})'?`);
-                    //     for (let i = 0; i < position.line; i++) {
-                    //         const lineText = document.lineAt(i).text;
-                    //         if (regex.test(lineText)) {
-                    //             console.log(i);
-                    //             console.log(lineText);
-                    //             line = i;
-                    //             break;
-                    //         }
-                    //     }
-                    //     return new Location(document.uri, new Position(line, 0));
-                    // }
                 }
             }
         );
     }
 
     private nodeScriptTooltip(document: TextDocument, position: Position): Hover | undefined {
-        const script = this.getScriptbyRegex(document, position, /id:\s+'?(.*)'?/);
+        const script = getScriptbyRegex(this.wfScript, document, position, /id:\s+'?(.*)'?/);
         if (script) {
             const y = yaml.safeLoad(fs.readFileSync(script[0].scriptSchemaPath, "utf8"));
             return new Hover(
@@ -241,7 +219,7 @@ export class MflowCommand extends CliCommands {
     }
 
     private edgesTooltip(document: TextDocument, position: Position): Hover | undefined {
-        const lineText = this.getTextbyRegex(document, position, /(source|target):\s+'?(\d+)'?/);
+        const lineText = getTextbyRegex(document, position, /(source|target):\s+'?(\d+)'?/);
         if (!(lineText && lineText.length > 2)) return;
 
         const scriptMeta = this.wfYaml.graph.nodes.find((i: { id: string }) => i.id === lineText[2]);
@@ -271,7 +249,7 @@ export class MflowCommand extends CliCommands {
     }
 
     private propertyTooltip(document: TextDocument, position: Position): Hover | undefined {
-        let lineText = this.getTextbyRegex(document, position, /(\d)\.([^\s]+)?/);
+        let lineText = getTextbyRegex(document, position, /(\d)\.([^\s]+)?/);
         let propertyText: string;
         let nodeId: string | undefined;
         let inputOutput: string;
@@ -280,7 +258,7 @@ export class MflowCommand extends CliCommands {
             propertyText = lineText[2];
             inputOutput = "outputs";
         } else {
-            lineText = this.getTextbyRegex(document, position, /property:\s+'?(.+)'?/);
+            lineText = getTextbyRegex(document, position, /property:\s+'?(.+)'?/);
             if (!(lineText && lineText.length > 1)) return;
             let i = position.line;
             for (i; i > 0; i--) {

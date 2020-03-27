@@ -1,11 +1,10 @@
-import { window, Uri, OutputChannel, commands, QuickPickItem, TextDocument, Position } from "vscode";
+import { window, Uri, OutputChannel, commands, QuickPickItem, TextDocument } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
 import fs from "fs";
 import { activeMflowTerminal, createQuickPick, execCommandCallback } from "./basicInput";
 import { getWfUri, getWfYaml, getMFlowPath } from "./path";
-import { ScriptAutoComplete } from "./autoComplete";
 
 /**
  * Package source type.
@@ -348,41 +347,5 @@ export class CliCommands {
                 <img src="${img}" />
             </body>
             </html>`;
-    }
-
-    protected getTextbyRegex(
-        document: TextDocument,
-        position: Position,
-        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null },
-        endwithPosition = false
-    ): RegExpMatchArray | null | undefined {
-        const line = endwithPosition
-            ? document.lineAt(position).text.substring(0, position.character)
-            : document.lineAt(position).text;
-        const lineText = line.match(matchRegex);
-        if (lineText && lineText.length > 1) {
-            return lineText;
-        }
-    }
-
-    protected getScriptbyRegex(
-        document: TextDocument,
-        position: Position,
-        matchRegex: { [Symbol.match](string: string): RegExpMatchArray | null },
-        endwithPosition = false
-    ): any[] | undefined {
-        try {
-            const lineText = this.getTextbyRegex(document, position, matchRegex, endwithPosition);
-            if (lineText && lineText.length > 1) {
-                if (lineText[0].match(/^\d.*/)) {
-                    const nodeId = lineText[1];
-                    const auto = new ScriptAutoComplete(this.rootPath, this.wfYaml, this.wfScript, this.output);
-                    return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === auto.getSchemaYaml(nodeId).id);
-                } else {
-                    const scriptId = document.getText(document.getWordRangeAtPosition(position));
-                    return this.wfScript.filter((x: { scriptId: any }) => x.scriptId === scriptId);
-                }
-            }
-        } catch (e) {}
     }
 }

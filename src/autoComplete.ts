@@ -1,8 +1,14 @@
-import vscode from "vscode";
+import { OutputChannel, CompletionItem, CompletionItemKind, TextDocument, Position } from "vscode";
 import yaml from "js-yaml";
 import path from "path";
 import fs from "fs";
 import { getConfig, getGlobalConfig } from "./path";
+import { getTextbyRegex } from "./util";
+
+export class MCompletionItem extends CompletionItem {
+    filterText = ".";
+    kind = CompletionItemKind.Field;
+}
 
 /**
  * The absctract auto complete class.
@@ -11,7 +17,7 @@ import { getConfig, getGlobalConfig } from "./path";
 abstract class AutoComplete {
     config: any;
     gbConfig: any;
-    constructor(public rootPath: string, public wfYaml: any, public ouput: vscode.OutputChannel) {
+    constructor(public rootPath: string, public wfYaml: any, public ouput: OutputChannel) {
         this.rootPath = rootPath;
         this.wfYaml = wfYaml;
         this.config = getConfig(this.rootPath);
@@ -25,14 +31,14 @@ abstract class AutoComplete {
      * @param nodeId: the node id from wf template graph.yaml.
      * @param lineTexts: the keying text split by `.`, i.e. [results, 0, fail]
      */
-    public abstract async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]>;
+    public abstract async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<MCompletionItem[]>;
 }
 
 /**
  * Script auto Complete
  */
 export class ScriptAutoComplete extends AutoComplete {
-    constructor(public rootPath: string, public wfYaml: any, public wfScript: any, public ouput: vscode.OutputChannel) {
+    constructor(public rootPath: string, public wfYaml: any, public wfScript: any, public ouput: OutputChannel) {
         super(rootPath, wfYaml, ouput);
         this.wfScript = wfScript;
     }
@@ -56,7 +62,7 @@ export class ScriptAutoComplete extends AutoComplete {
         }
     }
 
-    public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
+    public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<MCompletionItem[]> {
         const schemaYaml = this.getSchemaYaml(nodeId);
         if (!schemaYaml) throw Error(`scriptId cannot find.`);
         this.ouput.appendLine(`Script auto complete schema loaded success.`);
@@ -88,7 +94,7 @@ export class ScriptAutoComplete extends AutoComplete {
         }
         const dependencies = Object.keys(options || {});
         return dependencies.map(val => {
-            const item = new vscode.CompletionItem(val, vscode.CompletionItemKind.Field);
+            const item = new MCompletionItem(val);
             const name = options[val].name || options[val].title || "";
             const desc = options[val].description || "";
             item.detail = `(${options[val].type || "None"}) ${val}: ${name}`;
@@ -115,9 +121,9 @@ export class EventAutoComplete extends AutoComplete {
         return yaml.safeLoad(fs.readFileSync(eventPath, "utf8"));
     }
 
-    public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<vscode.CompletionItem[]> {
+    public async getCompletionItems(nodeId: string, lineTexts: string[]): Promise<MCompletionItem[]> {
         const eventYaml = this.getSchemaYaml();
-        if (!eventYaml) return [new vscode.CompletionItem("")];
+        if (!eventYaml) return [new MCompletionItem("")];
 
         this.ouput.appendLine(`Event auto complete schema loaded success.`);
         let options = eventYaml;
@@ -141,26 +147,31 @@ export class EventAutoComplete extends AutoComplete {
             }
         }
         const dependencies = Object.keys(options || {});
-        return dependencies.map(dep => new vscode.CompletionItem(dep, vscode.CompletionItemKind.Field));
+        return dependencies.map(dep => new MCompletionItem(dep));
     }
 }
 
 /**
  * Get script output column by typing value
- * @param document: workflow templaye graph content.
- * @param position: trigger position in document.
  * @param rootPath: workspeace root.
  * @param wfYaml: the newest saved workflow templaye yaml.
  * @param wfScript: the newest saved script info from workflow templaye.
  * @param ouput: The mflow output channel.
+ * @param document: workflow templaye graph content.
+ * @param position: trigger position in document.
  */
-export async function autoComplete(
-    lineText: RegExpMatchArray,
+export async function searchCompletionItems(
     rootPath: string,
     wfYaml: any,
     wfScript: any,
-    ouput: vscode.OutputChannel
-): Promise<vscode.CompletionItem[]> {
+    ouput: OutputChannel,
+    document: TextDocument,
+    position: Position
+): Promise<CompletionItem[]> {
+    let result = [new CompletionItem("")];
+    const lineText = getTextbyRegex(document, position, /(\d)\.([^\s]+\.)?/, true);
+    if (!(lineText && lineText.length > 1 && wfYaml?.graph?.nodes)) return result;
+
     let autoComplete: AutoComplete;
     let lineTexts: string[] = [];
     if (lineText.length > 2 && lineText[2]) {
@@ -177,5 +188,15 @@ export async function autoComplete(
     } else {
         autoComplete = new ScriptAutoComplete(rootPath, wfYaml, wfScript, ouput);
     }
-    return autoComplete.getCompletionItems(lineText[1], lineTexts);
+    try {
+        result = await autoComplete.getCompletionItems(lineText[1], lineTexts);
+        // Position of the selected auto-complete item insert.
+        const range = document.getWordRangeAtPosition(position);
+        if (range) {
+            result.forEach((item: any) => (item.range = range.with(position, position)));
+        }
+    } catch (e) {
+        console.log(e);
+    }
+    return result;
 }
