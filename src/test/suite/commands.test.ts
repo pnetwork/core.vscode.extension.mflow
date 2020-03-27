@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import assert from "assert";
 import { suite, test, setup } from "mocha";
 import vscode from "vscode";
@@ -7,10 +6,6 @@ import yaml from "js-yaml";
 import os from "os";
 import path from "path";
 import fs from "fs";
-
-async function waitForExtension(ms: number): Promise<NodeJS.Timeout> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 function filterLabels(result: vscode.CompletionItem[], mustHaveOptions: string[]): string[] {
     const options = result.map(({ label }) => label);
