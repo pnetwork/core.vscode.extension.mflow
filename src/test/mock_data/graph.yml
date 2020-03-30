@@ -1,0 +1,58 @@
+$schema: 'http://json-schema.pentium.network/marvin-workflows/0.1/schema'
+graph:
+  metadata:
+    version: 0.0.0
+    title: test
+    templateId: network.pentium.mflow.test
+    description: ''
+    tags:
+      - 事件
+    author: pentium
+  nodes:
+    - metadata:
+        sources:
+          - type: event
+            data: >-
+              network.pentium.platform.logging::network.pentium.asset.userRole.create.success::0.1
+        type: trigger
+        title: trigger
+        description: ''
+        marvinProperties:
+          position:
+            xAxis: 168
+            yAxis: 264
+      id: '0'
+    - metadata:
+        type: terminator
+        title: terminator
+        description: ''
+        marvinProperties:
+          position:
+            xAxis: 648
+            yAxis: 264
+      id: '1'
+    - metadata:
+        type: action
+        title: 绑定项目管理员角色
+        description: 填入项目管理员 ID，绑定成员项目管理员角色
+        script:
+          id: balances
+        marvinProperties:
+          position:
+            xAxis: 384
+            yAxis: 264
+      id: '3'
+  edges:
+    - source: '0'
+      target: '3'
+      metadata:
+        binding:
+          - property: user_id
+            value: '{{ 3.accounts }}'
+            type: string
+        filters:
+          property: nodes.0.reservation.after.haveNormalManagerRole
+          operator: ==
+          value: true
+    - source: '3'
+      target: '1'
