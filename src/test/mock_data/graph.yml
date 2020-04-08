@@ -3,7 +3,7 @@ graph:
   metadata:
     version: 0.0.0
     title: test
-    templateId: network.pentium.mflow.test
+    templateId: network.pentium.trek.test
     description: ''
     tags:
       - 事件

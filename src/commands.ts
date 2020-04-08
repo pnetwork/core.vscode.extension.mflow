@@ -24,16 +24,16 @@ import { getTextbyRegex, getScriptbyRegex } from "./util";
 /**
  * All Commands
  */
-export class MflowCommand extends CliCommands {
+export class TrekCommand extends CliCommands {
     readonly scriptNameReg = new RegExp("^[a-z0-9]+$");
 
     public showVersionCmd(): Disposable {
-        return commands.registerCommand("mflow.show.version", () => this.getVersion());
+        return commands.registerCommand("trek.show.version", () => this.getVersion());
     }
 
     public createProjectCmd(): Disposable {
-        return commands.registerCommand("mflow.create.project", async () => {
-            const result = await multiStepInput("Create mflow project", MultiStepTypes.CREATE_PROJECT);
+        return commands.registerCommand("trek.create.project", async () => {
+            const result = await multiStepInput("Create Trek project", MultiStepTypes.CREATE_PROJECT);
             if (result && result.isSuc) {
                 await this.createProject(result.name, result.uri, result.yn.toUpperCase() === "Y");
             }
@@ -41,7 +41,7 @@ export class MflowCommand extends CliCommands {
     }
 
     public createScriptCmd(scriptType: ScriptTypes): Disposable {
-        return commands.registerCommand(`mflow.${scriptType}.create`, async () => {
+        return commands.registerCommand(`trek.${scriptType}.create`, async () => {
             const name = await createInputBox(`Please enter ${scriptType} name: `, undefined, text => {
                 if (!this.scriptNameReg.test(text)) {
                     return "Script name should be number(0-9) or lowercase letter(a-z).";
@@ -53,7 +53,7 @@ export class MflowCommand extends CliCommands {
     }
 
     public installScriptCmd(): Disposable {
-        return commands.registerCommand("mflow.install.script", async () => {
+        return commands.registerCommand("trek.install.script", async () => {
             const scriptId = await createInputBox(
                 "Please enter script id: ",
                 "notification or notification==0.5.0 or *"
@@ -66,13 +66,13 @@ export class MflowCommand extends CliCommands {
     }
 
     public showInstalledScriptCmd(): Disposable {
-        return commands.registerCommand("mflow.show.installed", () => {
+        return commands.registerCommand("trek.show.installed", () => {
             this.getInstalledScript();
         });
     }
 
     public uninstallScriptCmd(): Disposable {
-        return commands.registerCommand("mflow.uninstall.script", async () => {
+        return commands.registerCommand("trek.uninstall.script", async () => {
             const scriptId = await createInputBox("Please enter script id: ", "notification");
             if (!scriptId) return;
             this.uninstallScript(scriptId);
@@ -80,7 +80,7 @@ export class MflowCommand extends CliCommands {
     }
 
     public remoteScriptCmd(): Disposable {
-        return commands.registerCommand("mflow.remote.scripts", async () => {
+        return commands.registerCommand("trek.remote.scripts", async () => {
             const scriptId = await createInputBox("Please enter script id: ", "notification or *");
             if (!scriptId) return;
             this.remoteScript(scriptId);
@@ -88,19 +88,19 @@ export class MflowCommand extends CliCommands {
     }
 
     public upCmd(): Disposable {
-        return commands.registerCommand("mflow.up", () => this.up());
+        return commands.registerCommand("trek.up", () => this.up());
     }
 
     public runCmd(): Disposable {
-        return commands.registerCommand("mflow.run", () => this.run());
+        return commands.registerCommand("trek.run", () => this.run());
     }
 
     public downCmd(): Disposable {
-        return commands.registerCommand("mflow.down", () => this.down());
+        return commands.registerCommand("trek.down", () => this.down());
     }
 
     public logsCmd(): Disposable {
-        return commands.registerCommand("mflow.logs", async () => {
+        return commands.registerCommand("trek.logs", async () => {
             const scriptId = await createInputBox("Please enter script id: ", "notification or *");
             if (!scriptId) return;
             this.logs(scriptId);
@@ -108,7 +108,7 @@ export class MflowCommand extends CliCommands {
     }
 
     public buildCmd(): Disposable {
-        return commands.registerCommand("mflow.build", async () => {
+        return commands.registerCommand("trek.build", async () => {
             const items = Object.values(PackTypes)
                 .filter(x => x !== PackTypes.WORKFLOW)
                 .map(label => ({ label }));
@@ -121,9 +121,9 @@ export class MflowCommand extends CliCommands {
     }
 
     public deployCmd(isAuto: boolean): Disposable {
-        return commands.registerCommand(isAuto ? "mflow.deploy.auto" : "mflow.deploy", async () => {
+        return commands.registerCommand(isAuto ? "trek.deploy.auto" : "trek.deploy", async () => {
             if (!this.verifyRootPath()) return;
-            const result = await multiStepInput("Deploy mflow project", MultiStepTypes.DEPLOY, this);
+            const result = await multiStepInput("Deploy Trek project", MultiStepTypes.DEPLOY, this);
             if (result && result.isSuc) {
                 await this.deploy(isAuto, result.type, result.yn.toUpperCase() === "Y", result.scriptType, result.uri);
             }
@@ -131,7 +131,7 @@ export class MflowCommand extends CliCommands {
     }
 
     public packCmd(): Disposable {
-        return commands.registerCommand("mflow.pack", async () => {
+        return commands.registerCommand("trek.pack", async () => {
             const items = Object.values(PackTypes).map(label => ({ label }));
             await commands.executeCommand("workbench.action.files.save");
             await createQuickPick(items, async selection => {
@@ -142,7 +142,7 @@ export class MflowCommand extends CliCommands {
     }
 
     public viewWf(): Disposable {
-        return commands.registerTextEditorCommand("mflow.view.wf", editor => {
+        return commands.registerTextEditorCommand("trek.view.wf", editor => {
             if (!this.verifyIsWftemplate(editor.document)) {
                 window.showErrorMessage("This file is not workflow file!");
                 return;
@@ -169,7 +169,7 @@ export class MflowCommand extends CliCommands {
                 if (!stdout) return;
                 this.wfScript = yaml.safeLoad(stdout.toString());
             });
-            child.execFile(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
+            child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
         }
     }
 

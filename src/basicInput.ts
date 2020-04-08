@@ -1,7 +1,7 @@
 import { window, Uri, OpenDialogOptions, InputBoxOptions, Terminal, OutputChannel, QuickPickItem } from "vscode";
 import child from "child_process";
 
-const TERMINAL_NAME = "mflow Terminal";
+const TERMINAL_NAME = "Trek Terminal";
 
 /**
  * Create input box.
@@ -61,12 +61,12 @@ export async function createBrowseFolder(defaultUri?: Uri): Promise<Uri | undefi
 
 /**
  * Execute command callback function
- * @param execFunc: execute call back function after log result on mflowOuputChannel.
- * @param mflowOuputChannel: the output channel of mflow.
+ * @param execFunc: execute call back function after log result on TrekOuputChannel.
+ * @param trekOuputChannel: the output channel of Trek.
  */
 export function execCommandCallback(
     execFunc: (stdout?: string) => void,
-    mflowOuputChannel?: OutputChannel
+    trekOuputChannel?: OutputChannel
 ): (error: child.ExecException | null, stdout: string, stderr: string) => void {
     return function(error: child.ExecException | null, stdout: string, stderr: string): void {
         if (error) {
@@ -74,9 +74,9 @@ export function execCommandCallback(
             throw error;
         }
         if (stderr) {
-            if (mflowOuputChannel) mflowOuputChannel.appendLine(stderr);
+            if (trekOuputChannel) trekOuputChannel.appendLine(stderr);
         } else if (stdout) {
-            if (mflowOuputChannel) mflowOuputChannel.appendLine(stdout);
+            if (trekOuputChannel) trekOuputChannel.appendLine(stdout);
             execFunc(stdout);
         }
     };
@@ -85,7 +85,7 @@ export function execCommandCallback(
 /**
  * Get or create terminal
  */
-export function activeMflowTerminal(): Terminal {
+export function activeTrekTerminal(): Terminal {
     let terminal = window.activeTerminal;
     if (!(terminal && terminal.name.startsWith(TERMINAL_NAME))) {
         const terminals = window.terminals.filter(x => x.name.startsWith(TERMINAL_NAME));

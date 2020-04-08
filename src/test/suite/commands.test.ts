@@ -14,11 +14,11 @@ function filterLabels(result: vscode.CompletionItem[], mustHaveOptions: string[]
 
 const mockBasePath = "../../../src/test/mock_data";
 
-suite("mflow: Auto Complete Test", function() {
+suite("trek: Auto Complete Test", function() {
     let ouputChannel: vscode.OutputChannel;
     setup(function(done) {
         this.timeout(10000);
-        ouputChannel = vscode.window.createOutputChannel("mflow ouput");
+        ouputChannel = vscode.window.createOutputChannel("Trek ouput");
         done();
     });
 

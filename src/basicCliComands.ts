@@ -3,14 +3,14 @@ import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
 import fs from "fs";
-import { activeMflowTerminal, createQuickPick, execCommandCallback } from "./basicInput";
-import { getWfUri, getWfYaml, getMFlowPath } from "./path";
+import { activeTrekTerminal, createQuickPick, execCommandCallback } from "./basicInput";
+import { getWfUri, getWfYaml, getTrekPath } from "./path";
 
 /**
  * Package source type.
  */
 export enum PackTypes {
-    ALL = "The mflow Project",
+    ALL = "The Trek Project",
     SCRIPT = "Only Script",
     WORKFLOW = "Only Workflow"
 }
@@ -25,18 +25,18 @@ export enum ScriptTypes {
 }
 
 /**
- * mflow Commands
+ * Trek Commands
  */
 export class CliCommands {
-    readonly noRootPathErrorMsg = "Please create or open mflow project first!";
-    readonly mflowReguireVersion = "1.0.0-beta";
+    readonly noRootPathErrorMsg = "Please create or open Trek project first!";
+    readonly trekReguireVersion = "1.0.0-beta";
     wfUri: string | undefined;
     wfYaml: any;
     wfScript: any;
-    mflowPath: string | undefined;
+    trekPath: string | undefined;
 
     constructor(public rootPath: string, public output: OutputChannel) {
-        this.mflowPath = getMFlowPath();
+        this.trekPath = getTrekPath();
         this.rootPath = rootPath;
         this.output = output;
 
@@ -48,7 +48,7 @@ export class CliCommands {
             if (!stdout) return;
             this.wfScript = yaml.safeLoad(stdout.toString());
         });
-        child.execFile(`${this.mflowPath}`, ["showscripts"], { cwd: rootPath }, openFile);
+        child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: rootPath }, openFile);
     }
 
     /**
@@ -63,15 +63,15 @@ export class CliCommands {
     }
 
     /**
-     * Check mflow version require.
+     * Check Trek version require.
      */
-    public checkMflowVersion(): void {
-        const result = child.execFileSync(`${this.mflowPath}`, ["-V"]);
+    public checkTrekVersion(): void {
+        const result = child.execFileSync(`${this.trekPath}`, ["-V"]);
         const version = result.toString().match(/(\d..*)+/);
-        if (version && version.length > 0 && version[0] >= this.mflowReguireVersion) {
+        if (version && version.length > 0 && version[0] >= this.trekReguireVersion) {
             return;
         }
-        window.showErrorMessage(`mflow cli tool version must >= ${this.mflowReguireVersion}.`);
+        window.showErrorMessage(`Trek cli tool version must >= ${this.trekReguireVersion}.`);
     }
 
     /**
@@ -95,7 +95,7 @@ export class CliCommands {
      * }]
      */
     private getScriptsFromWfTemplate(): any[] {
-        const buffer = child.execFileSync(`${this.mflowPath}`, ["showscripts"], { cwd: this.rootPath });
+        const buffer = child.execFileSync(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath });
         let result: any;
         try {
             result = yaml.safeLoad(buffer.toString());
@@ -127,27 +127,27 @@ export class CliCommands {
      */
     private sendTerminal(...commands: string[]): void {
         if (!(commands && commands.length > 0)) throw Error("commands mush has value.");
-        const terminal = activeMflowTerminal();
+        const terminal = activeTrekTerminal();
         commands.forEach(value => terminal.sendText(value));
         terminal.show();
     }
 
     /**
-     * Get mflow version.
+     * Get Trek version.
      */
     public getVersion(): void {
         this.output.appendLine(`Show version.`);
-        this.sendTerminal(`${this.mflowPath} -V`);
+        this.sendTerminal(`${this.trekPath} -V`);
     }
 
     /**
-     * Create mflow project.
-     * @param name: mflow project name.
+     * Create Trek project.
+     * @param name: Trek project name.
      * @param uri: where the project created.
      * @param isGenSample: is generator sample wf template.
      */
     public async createProject(name: string, uri: Uri, isGenSample: boolean): Promise<void> {
-        this.output.appendLine(`Create mflow project ${name} in ${uri.fsPath}.`);
+        this.output.appendLine(`Create Trek project ${name} in ${uri.fsPath}.`);
         const openFolder = execCommandCallback(() => {
             const workspaceUri: Uri = Uri.parse(uri.fsPath + "/" + name);
             commands.executeCommand("vscode.openFolder", workspaceUri);
@@ -155,7 +155,7 @@ export class CliCommands {
         const cmd = ["create", "-y"];
         if (isGenSample) cmd.push("--example");
         cmd.push(`${name}`);
-        child.execFile(`${this.mflowPath}`, cmd, { cwd: uri.fsPath }, openFolder);
+        child.execFile(`${this.trekPath}`, cmd, { cwd: uri.fsPath }, openFolder);
     }
 
     /**
@@ -170,7 +170,7 @@ export class CliCommands {
             const paraFile = Uri.parse(path.join(this.rootPath, "src", scriptType, name, `${name}.para`));
             commands.executeCommand("vscode.open", paraFile);
         }, this.output);
-        child.execFile(`${this.mflowPath}`, [scriptType, "create", `${name}`], { cwd: this.rootPath }, openFile);
+        child.execFile(`${this.trekPath}`, [scriptType, "create", `${name}`], { cwd: this.rootPath }, openFile);
     }
 
     /**
@@ -181,7 +181,7 @@ export class CliCommands {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Install script ${scriptId}.`);
         scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.mflowPath} install ${scriptId}`);
+        this.sendTerminal(`${this.trekPath} install ${scriptId}`);
     }
 
     /**
@@ -190,7 +190,7 @@ export class CliCommands {
     public getInstalledScript(): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Show installed script.`);
-        this.sendTerminal(`${this.mflowPath} install -l`);
+        this.sendTerminal(`${this.trekPath} install -l`);
     }
 
     /**
@@ -200,7 +200,7 @@ export class CliCommands {
     public uninstallScript(scriptId: string): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Uninstall script ${scriptId}.`);
-        this.sendTerminal(`${this.mflowPath} uninstall ${scriptId}`);
+        this.sendTerminal(`${this.trekPath} uninstall ${scriptId}`);
     }
 
     /**
@@ -211,7 +211,7 @@ export class CliCommands {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Remote script ${scriptId}.`);
         scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.mflowPath} remote ${scriptId} -l`);
+        this.sendTerminal(`${this.trekPath} remote ${scriptId} -l`);
     }
 
     /**
@@ -220,7 +220,7 @@ export class CliCommands {
     public up(): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Up containers.`);
-        this.sendTerminal(`${this.mflowPath} up`);
+        this.sendTerminal(`${this.trekPath} up`);
     }
 
     /**
@@ -229,7 +229,7 @@ export class CliCommands {
     public run(): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Run.`);
-        this.sendTerminal(`${this.mflowPath} run --auto`);
+        this.sendTerminal(`${this.trekPath} run --auto`);
     }
 
     /**
@@ -238,7 +238,7 @@ export class CliCommands {
     public down(): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Down containers.`);
-        this.sendTerminal(`${this.mflowPath} down -a`);
+        this.sendTerminal(`${this.trekPath} down -a`);
     }
 
     /**
@@ -249,7 +249,7 @@ export class CliCommands {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Show logs ${scriptId}.`);
         scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.mflowPath} logs ${scriptId}`);
+        this.sendTerminal(`${this.trekPath} logs ${scriptId}`);
     }
 
     /**
@@ -266,12 +266,12 @@ export class CliCommands {
                 const scriptPath = scriptSelect.detail;
                 const scriptType = scriptSelect.description;
                 this.sendTerminal(
-                    `${this.mflowPath} ${scriptType} build -p ${scriptPath}`,
-                    `${this.mflowPath} ${scriptType} push -p ${scriptPath}`
+                    `${this.trekPath} ${scriptType} build -p ${scriptPath}`,
+                    `${this.trekPath} ${scriptType} push -p ${scriptPath}`
                 );
             });
         } else {
-            this.sendTerminal(`${this.mflowPath} build`, `${this.mflowPath} push`);
+            this.sendTerminal(`${this.trekPath} build`, `${this.trekPath} push`);
         }
     }
 
@@ -288,11 +288,11 @@ export class CliCommands {
                 if (!scriptSelect) return;
                 const scriptPath = scriptSelect.detail;
                 const scriptType = scriptSelect.description;
-                this.sendTerminal(`${this.mflowPath} ${scriptType} pack -p ${scriptPath}`);
+                this.sendTerminal(`${this.trekPath} ${scriptType} pack -p ${scriptPath}`);
             });
         } else {
             const packTartget = itemType.label === PackTypes.ALL ? "-a" : "";
-            this.sendTerminal(`${this.mflowPath} pack ${packTartget} --auto-pos`);
+            this.sendTerminal(`${this.trekPath} pack ${packTartget} --auto-pos`);
         }
     }
 
@@ -316,16 +316,16 @@ export class CliCommands {
         option = isAuto ? option + " --autobuildpush --autopack" : option;
         if (type === PackTypes.SCRIPT) {
             option = `-p ${scriptUri?.fsPath} ` + option;
-            this.sendTerminal(`${this.mflowPath} ${scriptType} deploy ${option} `);
+            this.sendTerminal(`${this.trekPath} ${scriptType} deploy ${option} `);
         } else {
             option = type === PackTypes.ALL ? "-a " + option : option;
-            this.sendTerminal(`${this.mflowPath} deploy ${option}`);
+            this.sendTerminal(`${this.trekPath} deploy ${option}`);
         }
     }
 
     public buildWfGraphWebView(panel: import("vscode").WebviewPanel): string {
-        const result = child.execFileSync(`${this.mflowPath}`, ["graph"], { cwd: this.rootPath });
-        let img = path.join(this.rootPath, ".mflow", "graph.gv.png");
+        const result = child.execFileSync(`${this.trekPath}`, ["graph"], { cwd: this.rootPath });
+        let img = path.join(this.rootPath, ".trek", "graph.gv.png");
         if (!fs.existsSync(img)) {
             this.output.appendLine(result.toString());
             window.showErrorMessage(`Workflow template graph generator fail! ${result}`);
@@ -341,7 +341,7 @@ export class CliCommands {
                 <meta charset="UTF-8">
                 <meta http-equiv="Content-Security-Policy" >
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>mflow Grpah</title>
+                <title>Trek Grpah</title>
             </head>
             <body>
                 <img src="${img}" />

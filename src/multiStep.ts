@@ -2,7 +2,7 @@ import { window, Uri } from "vscode";
 import { MultiStepInput, InputStep } from "./basicMultiStepInput";
 import { createBrowseFolder } from "./basicInput";
 import { ScriptTypes, PackTypes } from "./basicCliComands";
-import { MflowCommand } from "./commands";
+import { TrekCommand } from "./commands";
 
 /**
  * Multiple step types.
@@ -39,12 +39,12 @@ function verifyYesorNo(input: string): boolean {
  * This first part uses the helper class `MultiStepInput` that wraps the API for the multi-step case.
  * @param title: Window title.
  * @param multiStepType: MultiStepTypes.
- * @param mflowCmd: mflow command obj.
+ * @param trekCmd: Trek command obj.
  */
 export async function multiStepInput(
     title: string,
     multiStepType: MultiStepTypes,
-    mflowCmd?: MflowCommand
+    trekCmd?: TrekCommand
 ): Promise<StepResult> {
     async function askCreateSample(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
         step.yn = await input.showInputBox({
@@ -103,7 +103,7 @@ export async function multiStepInput(
     }
 
     async function selectScript(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
-        const items = mflowCmd?.getScriptQuickPickItems() || [];
+        const items = trekCmd?.getScriptQuickPickItems() || [];
         const scriptSelect = await input.showQuickPick({
             title,
             step: 2,
@@ -142,7 +142,7 @@ export async function multiStepInput(
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Creating mflow Project '${result.name}'`);
+            window.showInformationMessage(`Creating Trek Project '${result.name}'`);
         } else {
             result.isSuc = false;
         }
@@ -151,7 +151,7 @@ export async function multiStepInput(
         if (result.type && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Deploy mflow Project to Marvel`);
+            window.showInformationMessage(`Deploy Trek Project to Marvel`);
         } else {
             result.isSuc = false;
         }

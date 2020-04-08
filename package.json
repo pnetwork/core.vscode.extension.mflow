@@ -1,8 +1,8 @@
 {
-	"name": "mflow-extension",
-	"displayName": "Pentium mflow",
+	"name": "trek-extension",
+	"displayName": "Pentium Trek",
 	"description": "",
-	"version": "0.1.4",
+	"version": "0.1.0",
 	"publisher": "pentium",
 	"engines": {
 		"vscode": "^1.41.0"
@@ -11,24 +11,24 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:mflow.show.version",
-		"onCommand:mflow.create.project",
-		"onCommand:mflow.blcks.create",
-		"onCommand:mflow.ansible.create",
-		"onCommand:mflow.shell.create",
-		"onCommand:mflow.show.installed",
-		"onCommand:mflow.install.script",
-		"onCommand:mflow.uninstall.script",
-		"onCommand:mflow.remote.scripts",
-		"onCommand:mflow.up",
-		"onCommand:mflow.run",
-		"onCommand:mflow.down",
-		"onCommand:mflow.logs",
-		"onCommand:mflow.build",
-		"onCommand:mflow.pack",
-		"onCommand:mflow.deploy",
-		"onCommand:mflow.deploy.auto",
-		"onCommand:mflow.view.wf",
+		"onCommand:trek.show.version",
+		"onCommand:trek.create.project",
+		"onCommand:trek.blcks.create",
+		"onCommand:trek.ansible.create",
+		"onCommand:trek.shell.create",
+		"onCommand:trek.show.installed",
+		"onCommand:trek.install.script",
+		"onCommand:trek.uninstall.script",
+		"onCommand:trek.remote.scripts",
+		"onCommand:trek.up",
+		"onCommand:trek.run",
+		"onCommand:trek.down",
+		"onCommand:trek.logs",
+		"onCommand:trek.build",
+		"onCommand:trek.pack",
+		"onCommand:trek.deploy",
+		"onCommand:trek.deploy.auto",
+		"onCommand:trek.view.wf",
 		"onLanguage:yaml",
 		"onLanguage:json",
 		"onWebviewPanel:wfGraph"
@@ -45,94 +45,94 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Pentium mflow",
+			"title": "Pentium Trek",
 			"properties": {
-				"mflow.path": {
+				"Trek.path": {
 					"type": "string",
 					"default": "",
-					"description": "mflow.path"
+					"description": "Trek.path"
 				}
 			}
 		},
 		"commands": [
 			{
-				"command": "mflow.show.version",
-				"title": "mflow: Version"
+				"command": "trek.show.version",
+				"title": "Trek: Version"
 			},
 			{
-				"command": "mflow.create.project",
-				"title": "mflow: Create mflow Project"
+				"command": "trek.create.project",
+				"title": "Trek: Create trek Project"
 			},
 			{
-				"command": "mflow.blcks.create",
-				"title": "mflow: Create Blcks"
+				"command": "trek.blcks.create",
+				"title": "trek: Create Blcks"
 			},
 			{
-				"command": "mflow.ansible.create",
-				"title": "mflow: Create Ansible"
+				"command": "trek.ansible.create",
+				"title": "Trek: Create Ansible"
 			},
 			{
-				"command": "mflow.shell.create",
-				"title": "mflow: Create Shell"
+				"command": "trek.shell.create",
+				"title": "Trek: Create Shell"
 			},
 			{
-				"command": "mflow.show.installed",
-				"title": "mflow: List Installed Scripts"
+				"command": "trek.show.installed",
+				"title": "Trek: List Installed Scripts"
 			},
 			{
-				"command": "mflow.remote.scripts",
-				"title": "mflow: List Remote Scripts"
+				"command": "trek.remote.scripts",
+				"title": "Trek: List Remote Scripts"
 			},
 			{
-				"command": "mflow.install.script",
-				"title": "mflow: Install Script"
+				"command": "trek.install.script",
+				"title": "Trek: Install Script"
 			},
 			{
-				"command": "mflow.uninstall.script",
-				"title": "mflow: Uninstall Script"
+				"command": "trek.uninstall.script",
+				"title": "Trek: Uninstall Script"
 			},
 			{
-				"command": "mflow.up",
-				"title": "mflow: Up"
+				"command": "trek.up",
+				"title": "Trek: Up"
 			},
 			{
-				"command": "mflow.down",
-				"title": "mflow: Down",
+				"command": "trek.down",
+				"title": "Trek: Down",
 				"icon": {
 					"light": "./resources/stop-light.svg",
 					"dark": "./resources/stop-dark.svg"
 				}
 			},
 			{
-				"command": "mflow.run",
-				"title": "mflow: Run",
+				"command": "trek.run",
+				"title": "Trek: Run",
 				"icon": {
 					"light": "./resources/run-light.svg",
 					"dark": "./resources/run-dark.svg"
 				}
 			},
 			{
-				"command": "mflow.logs",
-				"title": "mflow: Logs"
+				"command": "trek.logs",
+				"title": "Trek: Logs"
 			},
 			{
-				"command": "mflow.pack",
-				"title": "mflow: Pack"
+				"command": "trek.pack",
+				"title": "Trek: Pack"
 			},
 			{
-				"command": "mflow.build",
-				"title": "mflow: Build Push"
+				"command": "trek.build",
+				"title": "Trek: Build Push"
 			},
 			{
-				"command": "mflow.deploy",
-				"title": "mflow: Deploy Packed Packages to Marvin"
+				"command": "trek.deploy",
+				"title": "Trek: Deploy Packed Packages to Marvin"
 			},
 			{
-				"command": "mflow.deploy.auto",
-				"title": "mflow: Deploy to Marvin"
+				"command": "trek.deploy.auto",
+				"title": "Trek: Deploy to Marvin"
 			},
 			{
-				"command": "mflow.view.wf",
+				"command": "trek.view.wf",
 				"title": "View Workflow Template Graph",
 				"enablement": "isWfYaml"
 			}
@@ -140,28 +140,28 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "mflow.view.wf",
+					"command": "trek.view.wf",
 					"when": "false"
 				}
 			],
 			"editor/title": [
 				{
-					"command": "mflow.down",
+					"command": "trek.down",
 					"when": "resourceLangId == yaml && isWfYaml",
 					"group": "navigation@-1"
 				},
 				{
-					"command": "mflow.run",
+					"command": "trek.run",
 					"when": "resourceLangId == yaml && isWfYaml",
 					"group": "navigation@-2"
 				}
 			],
 			"editor/context": [
 				{
-					"command": "mflow.view.wf",
+					"command": "trek.view.wf",
 					"when": "resourceLangId == yaml",
 					"group": "6_view",
-					"alt": "mflow.view.wf"
+					"alt": "trek.view.wf"
 				}
 			]
 		},
