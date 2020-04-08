@@ -29,6 +29,9 @@
 		"onCommand:mflow.deploy",
 		"onCommand:mflow.deploy.auto",
 		"onCommand:mflow.view.wf",
+		"onCommand:mflow.search.asset.host",
+		"onCommand:mflow.search.asset.domain",
+		"onCommand:mflow.search.asset.chatbot",
 		"onLanguage:yaml",
 		"onLanguage:json",
 		"onWebviewPanel:wfGraph"
@@ -135,6 +138,18 @@
 				"command": "mflow.view.wf",
 				"title": "View Workflow Template Graph",
 				"enablement": "isWfYaml"
+			},
+			{
+				"command": "mflow.search.asset.host",
+				"title": "mflow: Search Host Assets"
+			},
+			{
+				"command": "mflow.search.asset.domain",
+				"title": "mflow: Search Domain Assets"
+			},
+			{
+				"command": "mflow.search.asset.chatbot",
+				"title": "mflow: Search Chatbot Assets"
 			}
 		],
 		"menus": {
@@ -189,6 +204,7 @@
 		"@types/vscode": "^1.41.0",
 		"@typescript-eslint/eslint-plugin": "^2.18.0",
 		"@typescript-eslint/parser": "^2.18.0",
+		"axios": "^0.19.2",
 		"eslint": "^6.8.0",
 		"eslint-config-prettier": "^6.10.0",
 		"eslint-config-standard": "^14.1.0",

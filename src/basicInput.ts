@@ -1,7 +1,20 @@
-import { window, Uri, OpenDialogOptions, InputBoxOptions, Terminal, OutputChannel, QuickPickItem } from "vscode";
+import {
+    window,
+    Uri,
+    OpenDialogOptions,
+    InputBoxOptions,
+    Terminal,
+    OutputChannel,
+    QuickPickItem,
+    QuickPickOptions
+} from "vscode";
 import child from "child_process";
 
 const TERMINAL_NAME = "mflow Terminal";
+
+export interface TrekQuickPickItem extends QuickPickItem {
+    id?: string;
+}
 
 /**
  * Create input box.
@@ -31,16 +44,37 @@ export async function createInputBox(
  */
 export async function createQuickPick(
     quickPickItems: any[],
-    onSelectFunc: (selection: QuickPickItem) => void
+    onSelectFunc: (selection: TrekQuickPickItem) => void
 ): Promise<void> {
     if (!quickPickItems) throw Error("QuickPickItems cannot be empty");
     const quickPick = window.createQuickPick();
     quickPick.items = quickPickItems;
+    quickPick.matchOnDescription = true;
+    quickPick.matchOnDetail = true;
     quickPick.onDidChangeSelection(async selection => {
         if (selection[0]) await onSelectFunc(selection[0]);
     });
     quickPick.onDidHide(() => quickPick.dispose());
     quickPick.show();
+}
+
+/**
+ * Show quick pick.
+ * @param quickPickItems: quick pick items.
+ * @param onSelectFunc: on select item function.
+ * @param canSelectMany: can select multi items.
+ */
+export async function showQuickPick(
+    quickPickItems: any[],
+    onSelectFunc: (selection: TrekQuickPickItem[]) => void,
+    canSelectMany = false
+): Promise<void> {
+    if (!quickPickItems) throw Error("QuickPickItems cannot be empty");
+    const options: QuickPickOptions = { canPickMany: canSelectMany, matchOnDetail: true, matchOnDescription: true };
+    const quickPick = window.showQuickPick(quickPickItems, options);
+    quickPick.then(async selection => {
+        if (selection && selection.length > 0) await onSelectFunc(selection);
+    });
 }
 
 /**

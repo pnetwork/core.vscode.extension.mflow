@@ -2,6 +2,7 @@ import vscode from "vscode";
 import { ScriptTypes } from "./basicCliComands";
 import { MflowCommand } from "./commands";
 import { getMFlowPath } from "./path";
+import { AssetsType } from "./util";
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
 let mflowCmd: MflowCommand;
@@ -38,6 +39,11 @@ export function activate(c: vscode.ExtensionContext): void {
         mflowCmd.hoverTooltips()
     ];
 
+    const assetsUriPath = Object.values(AssetsType);
+    for (const i of assetsUriPath) {
+        const scriptCmd = mflowCmd.searchAssetsCmd(i);
+        c.subscriptions.push(scriptCmd);
+    }
     const scriptTypeValues = Object.values(ScriptTypes);
     for (const i of scriptTypeValues) {
         const scriptCmd = mflowCmd.createScriptCmd(i);

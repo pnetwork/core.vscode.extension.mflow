@@ -11,7 +11,7 @@ import {
     Hover
 } from "vscode";
 import path from "path";
-import { createInputBox, createQuickPick, execCommandCallback } from "./basicInput";
+import { createInputBox, createQuickPick, execCommandCallback, showQuickPick } from "./basicInput";
 import { multiStepInput, MultiStepTypes } from "./multiStep";
 import { ScriptTypes, PackTypes, CliCommands } from "./basicCliComands";
 import { searchCompletionItems } from "./autoComplete";
@@ -19,7 +19,7 @@ import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
 import child from "child_process";
 import fs from "fs";
-import { getTextbyRegex, getScriptbyRegex } from "./util";
+import { getTextbyRegex, getScriptbyRegex, getAssets } from "./util";
 
 /**
  * All Commands
@@ -76,6 +76,34 @@ export class MflowCommand extends CliCommands {
             const scriptId = await createInputBox("Please enter script id: ", "notification");
             if (!scriptId) return;
             this.uninstallScript(scriptId);
+        });
+    }
+
+    public searchAssetsCmd(assetUriPath: any): Disposable {
+        const type = assetUriPath.name;
+        return commands.registerTextEditorCommand(`mflow.search.asset.${type}`, async editor => {
+            if (!this.verifyIsWftemplate(editor.document)) {
+                window.showErrorMessage("This file is not workflow file!");
+                return;
+            }
+
+            let items: any[] = [];
+            if (this.mflowPath) items = await getAssets(this.mflowPath, this.rootPath, assetUriPath);
+
+            const selection = editor.selection;
+            const line = selection.end.line;
+            const position = selection.end.character;
+
+            const insertAssetsId = (selects: any): void => {
+                const ids: string[] = [];
+                selects.forEach((select: { id: string }) => (select.id ? ids.push(select.id) : ""));
+                if (ids.length < 1) return;
+                editor.edit(editBuilder => {
+                    editBuilder.insert(new Position(line, position), ids.join(","));
+                });
+                this.output.appendLine(`Choose asset selectLabel.`);
+            };
+            showQuickPick(items, insertAssetsId, true);
         });
     }
 
