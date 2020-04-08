@@ -18,7 +18,7 @@ suite("trek: Auto Complete Test", function() {
     let ouputChannel: vscode.OutputChannel;
     setup(function(done) {
         this.timeout(10000);
-        ouputChannel = vscode.window.createOutputChannel("Trek ouput");
+        ouputChannel = vscode.window.createOutputChannel("Trek Ouput");
         done();
     });
 
