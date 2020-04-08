@@ -33,7 +33,7 @@ export class TrekCommand extends CliCommands {
 
     public createProjectCmd(): Disposable {
         return commands.registerCommand("trek.create.project", async () => {
-            const result = await multiStepInput("Create Trek project", MultiStepTypes.CREATE_PROJECT);
+            const result = await multiStepInput("Create trek project", MultiStepTypes.CREATE_PROJECT);
             if (result && result.isSuc) {
                 await this.createProject(result.name, result.uri, result.yn.toUpperCase() === "Y");
             }
@@ -123,7 +123,7 @@ export class TrekCommand extends CliCommands {
     public deployCmd(isAuto: boolean): Disposable {
         return commands.registerCommand(isAuto ? "trek.deploy.auto" : "trek.deploy", async () => {
             if (!this.verifyRootPath()) return;
-            const result = await multiStepInput("Deploy Trek project", MultiStepTypes.DEPLOY, this);
+            const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY, this);
             if (result && result.isSuc) {
                 await this.deploy(isAuto, result.type, result.yn.toUpperCase() === "Y", result.scriptType, result.uri);
             }

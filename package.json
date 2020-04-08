@@ -50,7 +50,7 @@
 				"Trek.path": {
 					"type": "string",
 					"default": "",
-					"description": "Trek.path"
+					"description": "Absolute path to a file containing environment variable definitions."
 				}
 			}
 		},

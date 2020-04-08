@@ -38,7 +38,7 @@ export function getWfYaml(wfUri: string): string | undefined {
 }
 
 /**
- * Get Trek project config json
+ * Get trek project config json
  * @param rootPath: the workspece path.
  */
 export function getConfig(rootPath: string): any {
@@ -53,7 +53,7 @@ export function getConfig(rootPath: string): any {
 }
 
 /**
- * Get Trek global config json
+ * Get trek global config json
  */
 export function getGlobalConfig(): any {
     const globalConfigPath = path.join(os.homedir(), ".trek", "config.json");
@@ -66,7 +66,7 @@ export function getGlobalConfig(): any {
 }
 
 /**
- * Get Trek path from setting
+ * Get trek path from setting
  */
 export function getTrekPath(): string {
     let trekPath = workspace.getConfiguration().get<string>("Trek.path");

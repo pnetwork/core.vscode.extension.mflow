@@ -19,16 +19,16 @@ export enum PackTypes {
  * Script type.
  */
 export enum ScriptTypes {
-    BLCKS = "blcks",
-    ANSIBLE = "ansible",
-    SHELL = "shell"
+    BLCKS = "Blcks",
+    ANSIBLE = "Ansible",
+    SHELL = "Shell"
 }
 
 /**
  * Trek Commands
  */
 export class CliCommands {
-    readonly noRootPathErrorMsg = "Please create or open Trek project first!";
+    readonly noRootPathErrorMsg = "Please create or open trek project first!";
     readonly trekReguireVersion = "1.0.0-beta";
     wfUri: string | undefined;
     wfYaml: any;
@@ -133,7 +133,7 @@ export class CliCommands {
     }
 
     /**
-     * Get Trek version.
+     * Get trek version.
      */
     public getVersion(): void {
         this.output.appendLine(`Show version.`);
@@ -141,13 +141,13 @@ export class CliCommands {
     }
 
     /**
-     * Create Trek project.
-     * @param name: Trek project name.
+     * Create trek project.
+     * @param name: trek project name.
      * @param uri: where the project created.
      * @param isGenSample: is generator sample wf template.
      */
     public async createProject(name: string, uri: Uri, isGenSample: boolean): Promise<void> {
-        this.output.appendLine(`Create Trek project ${name} in ${uri.fsPath}.`);
+        this.output.appendLine(`Create trek project ${name} in ${uri.fsPath}.`);
         const openFolder = execCommandCallback(() => {
             const workspaceUri: Uri = Uri.parse(uri.fsPath + "/" + name);
             commands.executeCommand("vscode.openFolder", workspaceUri);

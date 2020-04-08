@@ -61,8 +61,8 @@ export async function createBrowseFolder(defaultUri?: Uri): Promise<Uri | undefi
 
 /**
  * Execute command callback function
- * @param execFunc: execute call back function after log result on TrekOuputChannel.
- * @param trekOuputChannel: the output channel of Trek.
+ * @param execFunc: execute call back function after log result on trekOuputChannel.
+ * @param trekOuputChannel: the output channel of trek.
  */
 export function execCommandCallback(
     execFunc: (stdout?: string) => void,

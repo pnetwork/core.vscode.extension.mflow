@@ -7,7 +7,7 @@ let rootPath: string;
 let trekCmd: TrekCommand;
 
 export function activate(c: vscode.ExtensionContext): void {
-    ouputChannel = vscode.window.createOutputChannel("Trek ouput");
+    ouputChannel = vscode.window.createOutputChannel("Trek Ouput");
     const workspaceFolders = vscode.workspace.workspaceFolders;
     rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
     trekCmd = new TrekCommand(rootPath, ouputChannel);
