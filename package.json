@@ -1,207 +1,197 @@
 {
-	"name": "trek-extension",
-	"displayName": "Pentium Trek",
-	"description": "",
-	"version": "0.1.0",
-	"publisher": "pentium",
-	"engines": {
-		"vscode": "^1.41.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:trek.show.version",
-		"onCommand:trek.create.project",
-		"onCommand:trek.blcks.create",
-		"onCommand:trek.ansible.create",
-		"onCommand:trek.shell.create",
-		"onCommand:trek.show.installed",
-		"onCommand:trek.install.script",
-		"onCommand:trek.uninstall.script",
-		"onCommand:trek.remote.scripts",
-		"onCommand:trek.up",
-		"onCommand:trek.run",
-		"onCommand:trek.down",
-		"onCommand:trek.logs",
-		"onCommand:trek.build",
-		"onCommand:trek.pack",
-		"onCommand:trek.deploy",
-		"onCommand:trek.deploy.auto",
-		"onCommand:trek.view.wf",
-		"onLanguage:yaml",
-		"onLanguage:json",
-		"onWebviewPanel:wfGraph"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"languages": [
-			{
-				"id": "yaml",
-				"extensions": [
-					".para"
-				]
-			}
-		],
-		"configuration": {
-			"type": "object",
-			"title": "Pentium Trek",
-			"properties": {
-				"Trek.path": {
-					"type": "string",
-					"default": "",
-					"description": "Absolute path to a file containing environment variable definitions."
-				}
-			}
-		},
-		"commands": [
-			{
-				"command": "trek.show.version",
-				"title": "Trek: Version"
-			},
-			{
-				"command": "trek.create.project",
-				"title": "Trek: Create trek Project"
-			},
-			{
-				"command": "trek.blcks.create",
-				"title": "trek: Create Blcks"
-			},
-			{
-				"command": "trek.ansible.create",
-				"title": "Trek: Create Ansible"
-			},
-			{
-				"command": "trek.shell.create",
-				"title": "Trek: Create Shell"
-			},
-			{
-				"command": "trek.show.installed",
-				"title": "Trek: List Installed Scripts"
-			},
-			{
-				"command": "trek.remote.scripts",
-				"title": "Trek: List Remote Scripts"
-			},
-			{
-				"command": "trek.install.script",
-				"title": "Trek: Install Script"
-			},
-			{
-				"command": "trek.uninstall.script",
-				"title": "Trek: Uninstall Script"
-			},
-			{
-				"command": "trek.up",
-				"title": "Trek: Up"
-			},
-			{
-				"command": "trek.down",
-				"title": "Trek: Down",
-				"icon": {
-					"light": "./resources/stop-light.svg",
-					"dark": "./resources/stop-dark.svg"
-				}
-			},
-			{
-				"command": "trek.run",
-				"title": "Trek: Run",
-				"icon": {
-					"light": "./resources/run-light.svg",
-					"dark": "./resources/run-dark.svg"
-				}
-			},
-			{
-				"command": "trek.logs",
-				"title": "Trek: Logs"
-			},
-			{
-				"command": "trek.pack",
-				"title": "Trek: Pack"
-			},
-			{
-				"command": "trek.build",
-				"title": "Trek: Build Push"
-			},
-			{
-				"command": "trek.deploy",
-				"title": "Trek: Deploy Packed Packages to Marvin"
-			},
-			{
-				"command": "trek.deploy.auto",
-				"title": "Trek: Deploy to Marvin"
-			},
-			{
-				"command": "trek.view.wf",
-				"title": "View Workflow Template Graph",
-				"enablement": "isWfYaml"
-			}
-		],
-		"menus": {
-			"commandPalette": [
-				{
-					"command": "trek.view.wf",
-					"when": "false"
-				}
-			],
-			"editor/title": [
-				{
-					"command": "trek.down",
-					"when": "resourceLangId == yaml && isWfYaml",
-					"group": "navigation@-1"
-				},
-				{
-					"command": "trek.run",
-					"when": "resourceLangId == yaml && isWfYaml",
-					"group": "navigation@-2"
-				}
-			],
-			"editor/context": [
-				{
-					"command": "trek.view.wf",
-					"when": "resourceLangId == yaml",
-					"group": "6_view",
-					"alt": "trek.view.wf"
-				}
-			]
-		},
-		"snippets": [
-			{
-				"language": "yaml",
-				"path": "./snippets/snippets.json"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"lint": "eslint --fix src --ext ts",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {},
-	"dependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/js-yaml": "^3.12.2",
-		"@types/mocha": "^7.0.1",
-		"@types/node": "^12.11.7",
-		"@types/vscode": "^1.41.0",
-		"@typescript-eslint/eslint-plugin": "^2.18.0",
-		"@typescript-eslint/parser": "^2.18.0",
-		"eslint": "^6.8.0",
-		"eslint-config-prettier": "^6.10.0",
-		"eslint-config-standard": "^14.1.0",
-		"eslint-plugin-import": "^2.20.1",
-		"eslint-plugin-node": "^11.0.0",
-		"eslint-plugin-prettier": "^3.1.2",
-		"eslint-plugin-promise": "^4.2.1",
-		"eslint-plugin-standard": "^4.0.1",
-		"glob": "^7.1.6",
-		"graphviz": "0.0.9",
-		"mocha": "^7.0.1",
-		"prettier": "^1.19.1",
-		"typescript": "^3.7.5",
-		"vscode-test": "^1.3.0"
-	}
+    "name": "trek-extension",
+    "displayName": "Pentium Trek",
+    "description": "",
+    "version": "0.1.0",
+    "publisher": "pentium",
+    "engines": {
+        "vscode": "^1.41.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:trek.show.version",
+        "onCommand:trek.create.project",
+        "onCommand:trek.blcks.create",
+        "onCommand:trek.ansible.create",
+        "onCommand:trek.shell.create",
+        "onCommand:trek.show.installed",
+        "onCommand:trek.install.script",
+        "onCommand:trek.uninstall.script",
+        "onCommand:trek.remote.scripts",
+        "onCommand:trek.up",
+        "onCommand:trek.run",
+        "onCommand:trek.down",
+        "onCommand:trek.logs",
+        "onCommand:trek.build",
+        "onCommand:trek.pack",
+        "onCommand:trek.deploy",
+        "onCommand:trek.deploy.auto",
+        "onCommand:trek.view.wf",
+        "onLanguage:yaml",
+        "onLanguage:json",
+        "onWebviewPanel:wfGraph"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "languages": [{
+            "id": "yaml",
+            "extensions": [
+                ".para"
+            ]
+        }],
+        "configuration": {
+            "type": "object",
+            "title": "Pentium Trek",
+            "properties": {
+                "Trek.path": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Absolute path to a file containing environment variable definitions."
+                }
+            }
+        },
+        "commands": [{
+                "command": "trek.show.version",
+                "title": "Trek: Version"
+            },
+            {
+                "command": "trek.create.project",
+                "title": "Trek: Create trek Project"
+            },
+            {
+                "command": "trek.blcks.create",
+                "title": "Trek: Create Blcks"
+            },
+            {
+                "command": "trek.ansible.create",
+                "title": "Trek: Create Ansible"
+            },
+            {
+                "command": "trek.shell.create",
+                "title": "Trek: Create Shell"
+            },
+            {
+                "command": "trek.show.installed",
+                "title": "Trek: List Installed Scripts"
+            },
+            {
+                "command": "trek.remote.scripts",
+                "title": "Trek: List Remote Scripts"
+            },
+            {
+                "command": "trek.install.script",
+                "title": "Trek: Install Script"
+            },
+            {
+                "command": "trek.uninstall.script",
+                "title": "Trek: Uninstall Script"
+            },
+            {
+                "command": "trek.up",
+                "title": "Trek: Up"
+            },
+            {
+                "command": "trek.down",
+                "title": "Trek: Down",
+                "icon": {
+                    "light": "./resources/stop-light.svg",
+                    "dark": "./resources/stop-dark.svg"
+                }
+            },
+            {
+                "command": "trek.run",
+                "title": "Trek: Run",
+                "icon": {
+                    "light": "./resources/run-light.svg",
+                    "dark": "./resources/run-dark.svg"
+                }
+            },
+            {
+                "command": "trek.show.logs",
+                "title": "Trek: Logs"
+            },
+            {
+                "command": "trek.pack",
+                "title": "Trek: Pack"
+            },
+            {
+                "command": "trek.build",
+                "title": "Trek: Build Push"
+            },
+            {
+                "command": "trek.deploy",
+                "title": "Trek: Deploy Packed Packages to Marvin"
+            },
+            {
+                "command": "trek.deploy.auto",
+                "title": "Trek: Deploy to Marvin"
+            },
+            {
+                "command": "trek.view.wf",
+                "title": "View Workflow Template Graph",
+                "enablement": "isWfYaml"
+            }
+        ],
+        "menus": {
+            "commandPalette": [{
+                "command": "trek.view.wf",
+                "when": "false"
+            }],
+            "editor/title": [{
+                    "command": "trek.down",
+                    "when": "resourceLangId == yaml && isWfYaml",
+                    "group": "navigation@-1"
+                },
+                {
+                    "command": "trek.run",
+                    "when": "resourceLangId == yaml && isWfYaml",
+                    "group": "navigation@-2"
+                }
+            ],
+            "editor/context": [{
+                "command": "trek.view.wf",
+                "when": "resourceLangId == yaml",
+                "group": "6_view",
+                "alt": "trek.view.wf"
+            }]
+        },
+        "snippets": [{
+            "language": "yaml",
+            "path": "./snippets/snippets.json"
+        }]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "lint": "eslint --fix src --ext ts",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {},
+    "dependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/js-yaml": "^3.12.2",
+        "@types/mocha": "^7.0.1",
+        "@types/node": "^12.11.7",
+        "@types/vscode": "^1.41.0",
+        "@typescript-eslint/eslint-plugin": "^2.18.0",
+        "@typescript-eslint/parser": "^2.18.0",
+        "eslint": "^6.8.0",
+        "eslint-config-prettier": "^6.10.0",
+        "eslint-config-standard": "^14.1.0",
+        "eslint-plugin-import": "^2.20.1",
+        "eslint-plugin-node": "^11.0.0",
+        "eslint-plugin-prettier": "^3.1.2",
+        "eslint-plugin-promise": "^4.2.1",
+        "eslint-plugin-standard": "^4.0.1",
+        "glob": "^7.1.6",
+        "graphviz": "0.0.9",
+        "mocha": "^7.0.1",
+        "prettier": "^1.19.1",
+        "typescript": "^3.7.5",
+        "vscode-test": "^1.3.0"
+    }
 }

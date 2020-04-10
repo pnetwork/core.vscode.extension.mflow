@@ -100,7 +100,7 @@ export class TrekCommand extends CliCommands {
     }
 
     public logsCmd(): Disposable {
-        return commands.registerCommand("trek.logs", async () => {
+        return commands.registerCommand("trek.show.logs", async () => {
             const scriptId = await createInputBox("Please enter script id: ", "notification or *");
             if (!scriptId) return;
             this.logs(scriptId);

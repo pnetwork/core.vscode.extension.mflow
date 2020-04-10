@@ -19,9 +19,9 @@ export enum PackTypes {
  * Script type.
  */
 export enum ScriptTypes {
-    BLCKS = "Blcks",
-    ANSIBLE = "Ansible",
-    SHELL = "Shell"
+    BLCKS = "blcks",
+    ANSIBLE = "ansible",
+    SHELL = "shell"
 }
 
 /**
@@ -152,7 +152,7 @@ export class CliCommands {
             const workspaceUri: Uri = Uri.parse(uri.fsPath + "/" + name);
             commands.executeCommand("vscode.openFolder", workspaceUri);
         }, this.output);
-        const cmd = ["create", "-y"];
+        const cmd = ["createproject", "-y"];
         if (isGenSample) cmd.push("--example");
         cmd.push(`${name}`);
         child.execFile(`${this.trekPath}`, cmd, { cwd: uri.fsPath }, openFolder);
@@ -170,7 +170,7 @@ export class CliCommands {
             const paraFile = Uri.parse(path.join(this.rootPath, "src", scriptType, name, `${name}.para`));
             commands.executeCommand("vscode.open", paraFile);
         }, this.output);
-        child.execFile(`${this.trekPath}`, [scriptType, "create", `${name}`], { cwd: this.rootPath }, openFile);
+        child.execFile(`${this.trekPath}`, [`create${scriptType}`, `${name}`], { cwd: this.rootPath }, openFile);
     }
 
     /**
@@ -211,7 +211,7 @@ export class CliCommands {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Remote script ${scriptId}.`);
         scriptId = scriptId === "*" ? "" : scriptId;
-        this.sendTerminal(`${this.trekPath} remote ${scriptId} -l`);
+        this.sendTerminal(`${this.trekPath} listscripts ${scriptId}`);
     }
 
     /**
@@ -220,7 +220,7 @@ export class CliCommands {
     public up(): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Up containers.`);
-        this.sendTerminal(`${this.trekPath} up`);
+        this.sendTerminal(`${this.trekPath} initenv`);
     }
 
     /**
@@ -238,7 +238,7 @@ export class CliCommands {
     public down(): void {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Down containers.`);
-        this.sendTerminal(`${this.trekPath} down -a`);
+        this.sendTerminal(`${this.trekPath} shutdownenv -a`);
     }
 
     /**
