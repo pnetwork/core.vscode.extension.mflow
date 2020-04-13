@@ -3,13 +3,15 @@ import { MultiStepInput, InputStep } from "./basicMultiStepInput";
 import { createBrowseFolder } from "./basicInput";
 import { ScriptTypes, PackTypes } from "./basicCliComands";
 import { TrekCommand } from "./commands";
+import { getConfig, getGlobalConfig, getRootPath } from "./path";
 
 /**
  * Multiple step types.
  */
 export enum MultiStepTypes {
     CREATE_PROJECT,
-    DEPLOY
+    DEPLOY,
+    LOGIN
 }
 
 /**
@@ -23,6 +25,7 @@ interface StepResult {
     yn: string;
     scriptType: ScriptTypes;
     type: PackTypes;
+    password: string;
 }
 
 /**
@@ -136,6 +139,44 @@ export async function multiStepInput(
         }
     }
 
+    async function inputMarvinUrl(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
+        const rootPath = getRootPath();
+        let marvinUrl = getConfig(rootPath)?.marvin_url;
+        if (!marvinUrl) {
+            marvinUrl = getGlobalConfig()?.marvin_url;
+        }
+        marvinUrl = await input.showInputBox({
+            title,
+            step: 3,
+            totalSteps: 3,
+            value: marvinUrl,
+            prompt: "Please enter a marvin url?"
+        });
+        step.uri = Uri.parse(marvinUrl);
+    }
+
+    async function inputPassword(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
+        step.password = await input.showInputBox({
+            title,
+            step: 2,
+            totalSteps: 3,
+            value: step.password || "",
+            prompt: "Please enter password: "
+        });
+        return (input: MultiStepInput): Promise<void> => inputMarvinUrl(input, step);
+    }
+
+    async function inputUserName(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
+        step.name = await input.showInputBox({
+            title,
+            step: 1,
+            totalSteps: 3,
+            value: step.name || "",
+            prompt: "Please enter user name: "
+        });
+        return (input: MultiStepInput): Promise<InputStep> => inputPassword(input, step);
+    }
+
     const result = {} as Partial<StepResult>;
     if (multiStepType === MultiStepTypes.CREATE_PROJECT) {
         await MultiStepInput.run(input => selectLocation(input, result));
@@ -151,7 +192,16 @@ export async function multiStepInput(
         if (result.type && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Deploy Trek Project to Marvel`);
+            window.showInformationMessage(`Deploy Trek Project to Marvin`);
+        } else {
+            result.isSuc = false;
+        }
+    } else if (multiStepType === MultiStepTypes.LOGIN) {
+        await MultiStepInput.run(input => inputUserName(input, result));
+        if (result.name && result.password && result.uri) {
+            result.title = title;
+            result.isSuc = true;
+            window.showInformationMessage(`Login to Marvin.`);
         } else {
             result.isSuc = false;
         }

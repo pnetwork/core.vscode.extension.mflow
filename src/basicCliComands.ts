@@ -159,6 +159,18 @@ export class CliCommands {
     }
 
     /**
+     * Login to marvin.
+     * @param name: marin user name.
+     * @param password: marin user password.
+     * @param uri: marin url.
+     */
+    public async login(name: string, password: string, uri: Uri): Promise<void> {
+        if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Login marvin ${uri}.`);
+        this.sendTerminal(`${this.trekPath} loginvs -u ${name} -p ${password} -m ${uri.toString()}`);
+    }
+
+    /**
      * Create script project under workspace/src.
      * @param scriptType: might be blcks/ansible/shell.
      * @param name: the script name.
@@ -300,7 +312,7 @@ export class CliCommands {
      * Deploy the wf template and script from pack()
      * @param isAuto: Is auto deploy or only deploy.
      * @param type: Select pack type.
-     * @param isOverwrite: Is overwrite marvel script/wf.
+     * @param isOverwrite: Is overwrite marvin script/wf.
      * @param scriptType: Select script type.
      * @param scriptUri: The script path.
      */

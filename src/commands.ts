@@ -31,9 +31,18 @@ export class TrekCommand extends CliCommands {
         return commands.registerCommand("trek.show.version", () => this.getVersion());
     }
 
+    public loginCmd(): Disposable {
+        return commands.registerCommand("trek.login", async () => {
+            const result = await multiStepInput("Login to Marvin", MultiStepTypes.LOGIN);
+            if (result && result.isSuc) {
+                await this.login(result.name, result.password, result.uri);
+            }
+        });
+    }
+
     public createProjectCmd(): Disposable {
         return commands.registerCommand("trek.create.project", async () => {
-            const result = await multiStepInput("Create trek project", MultiStepTypes.CREATE_PROJECT);
+            const result = await multiStepInput("Create Trek project", MultiStepTypes.CREATE_PROJECT);
             if (result && result.isSuc) {
                 await this.createProject(result.name, result.uri, result.yn.toUpperCase() === "Y");
             }

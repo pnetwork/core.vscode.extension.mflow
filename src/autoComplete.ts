@@ -69,7 +69,7 @@ export class ScriptAutoComplete extends AutoComplete {
         for (const i in lineTexts) {
             if (isArray) {
                 isArray = false;
-                options = !lineTexts[i].match(/\d/) ? options.items : {};
+                options = lineTexts[i].match(/\d/) ? options.items : {};
             } else {
                 options = options ? options[lineTexts[i]] : [];
             }

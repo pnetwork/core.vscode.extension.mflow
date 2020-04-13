@@ -12,6 +12,7 @@
     ],
     "activationEvents": [
         "onCommand:trek.show.version",
+        "onCommand:trek.login",
         "onCommand:trek.create.project",
         "onCommand:trek.blcks.create",
         "onCommand:trek.ansible.create",
@@ -57,8 +58,12 @@
                 "title": "Trek: Version"
             },
             {
+                "command": "trek.login",
+                "title": "Trek: Login to Marvin"
+            },
+            {
                 "command": "trek.create.project",
-                "title": "Trek: Create trek Project"
+                "title": "Trek: Create Trek Project"
             },
             {
                 "command": "trek.blcks.create",

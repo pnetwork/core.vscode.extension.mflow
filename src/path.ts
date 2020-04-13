@@ -5,6 +5,15 @@ import os from "os";
 import { workspace } from "vscode";
 
 /**
+ * Get workspace root path.
+ */
+export function getRootPath(): string {
+    const workspaceFolders = workspace.workspaceFolders;
+    const rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
+    return rootPath;
+}
+
+/**
  * Get file url of workflow graph yaml
  * @param rootPath: workspeace root.
  */

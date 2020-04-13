@@ -36,7 +36,8 @@ suite("Extension Test Suite", function() {
             "trek.logs",
             "trek.pack",
             "trek.deploy.auto",
-            "trek.deploy"
+            "trek.deploy",
+            "trek.login"
         ];
         const foundTrekCommands = commands.filter(value => {
             return TREK_COMMANDS.indexOf(value) >= 0 || value.startsWith("trek.");

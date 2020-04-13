@@ -1,15 +1,14 @@
 import vscode from "vscode";
 import { ScriptTypes } from "./basicCliComands";
 import { TrekCommand } from "./commands";
-import { getTrekPath } from "./path";
+import { getTrekPath, getRootPath } from "./path";
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
 let trekCmd: TrekCommand;
 
 export function activate(c: vscode.ExtensionContext): void {
     ouputChannel = vscode.window.createOutputChannel("Trek Ouput");
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
+    rootPath = getRootPath();
     trekCmd = new TrekCommand(rootPath, ouputChannel);
     if (vscode.window.activeTextEditor?.document.fileName === trekCmd.wfUri) {
         vscode.commands.executeCommand("setContext", "isWfYaml", true);
@@ -19,6 +18,7 @@ export function activate(c: vscode.ExtensionContext): void {
 
     const cmdList = [
         trekCmd.showVersionCmd(),
+        trekCmd.loginCmd(),
         trekCmd.createProjectCmd(),
         trekCmd.showInstalledScriptCmd(),
         trekCmd.installScriptCmd(),
