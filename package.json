@@ -2,7 +2,7 @@
     "name": "trek-extension",
     "displayName": "Pentium Trek",
     "description": "",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "pentium",
     "engines": {
         "vscode": "^1.41.0"
@@ -63,7 +63,7 @@
             },
             {
                 "command": "trek.create.project",
-                "title": "Trek: Create Trek Project"
+                "title": "Trek: Create Project"
             },
             {
                 "command": "trek.blcks.create",
@@ -95,11 +95,11 @@
             },
             {
                 "command": "trek.up",
-                "title": "Trek: Up"
+                "title": "Trek: Init Env"
             },
             {
                 "command": "trek.down",
-                "title": "Trek: Down",
+                "title": "Trek: Shutdown Env",
                 "icon": {
                     "light": "./resources/stop-light.svg",
                     "dark": "./resources/stop-dark.svg"
@@ -123,7 +123,7 @@
             },
             {
                 "command": "trek.build",
-                "title": "Trek: Build Push"
+                "title": "Trek: Build and Push"
             },
             {
                 "command": "trek.deploy",
