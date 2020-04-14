@@ -1,5 +1,5 @@
 {
-	"mflow: node generator": {
+	"Trek: node generator": {
 		"prefix": "nodes metadata",
 		"body": [ 
 			"metadata:",
@@ -12,7 +12,7 @@
 		],
 		"description": "node"
 	},
-	"mflow: node selector generator": {
+	"Trek: node selector generator": {
 		"prefix": "nodes selector metadata",
 		"body": [ 
 			"metadata:",
@@ -22,7 +22,7 @@
 		],
 		"description": "node selector"
 	},
-	"mflow: edge generator": {
+	"Trek: edge generator": {
 		"prefix": "edges source",
 		"body": [
 			"source: '$1'",
@@ -35,7 +35,7 @@
 		],
 		"description": "edge"
 	},
-	"mflow: edge selector generator": {
+	"Trek: edge selector generator": {
 		"prefix": "edges source selector",
 		"body": [
 			"source: '$1'",
@@ -52,7 +52,7 @@
 		],
 		"description": "edge selector"
 	},
-	"mflow: edge metadata": {
+	"Trek: edge metadata": {
 		"prefix": "edges metadata",
 		"body": [
 			"metadata:",
@@ -63,7 +63,7 @@
 		],
 		"description": "edge metadata"
 	},
-	"mflow: edge no property generator": {
+	"Trek: edge no property generator": {
 		"prefix": "edges source no property",
 		"body": [
 			"source: '$1'",
@@ -71,7 +71,7 @@
 		],
 		"description": "edge with no property"
 	},
-	"mflow: action property": {
+	"Trek: action property": {
 		"prefix": "action property",
 		"body": [
 			"property: $1",
@@ -80,7 +80,7 @@
 		],
 		"description": "action property binding"
 	},
-	"mflow: cron trigger": {
+	"Trek: cron trigger": {
 		"prefix": "type cron trigger",
 		"body": [
 			"type: cron",
@@ -88,7 +88,7 @@
 		],
 		"description": "cron trigger"
 	},
-	"mflow: event trigger": {
+	"Trek: event trigger": {
 		"prefix": "type event trigger",
 		"body": [
 			"type: event",

@@ -2,14 +2,16 @@ import { window, Uri } from "vscode";
 import { MultiStepInput, InputStep } from "./basicMultiStepInput";
 import { createBrowseFolder } from "./basicInput";
 import { ScriptTypes, PackTypes } from "./basicCliComands";
-import { MflowCommand } from "./commands";
+import { TrekCommand } from "./commands";
+import { getConfig, getGlobalConfig, getRootPath } from "./path";
 
 /**
  * Multiple step types.
  */
 export enum MultiStepTypes {
     CREATE_PROJECT,
-    DEPLOY
+    DEPLOY,
+    LOGIN
 }
 
 /**
@@ -23,6 +25,7 @@ interface StepResult {
     yn: string;
     scriptType: ScriptTypes;
     type: PackTypes;
+    password: string;
 }
 
 /**
@@ -39,12 +42,12 @@ function verifyYesorNo(input: string): boolean {
  * This first part uses the helper class `MultiStepInput` that wraps the API for the multi-step case.
  * @param title: Window title.
  * @param multiStepType: MultiStepTypes.
- * @param mflowCmd: mflow command obj.
+ * @param trekCmd: Trek command obj.
  */
 export async function multiStepInput(
     title: string,
     multiStepType: MultiStepTypes,
-    mflowCmd?: MflowCommand
+    trekCmd?: TrekCommand
 ): Promise<StepResult> {
     async function askCreateSample(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
         step.yn = await input.showInputBox({
@@ -103,7 +106,7 @@ export async function multiStepInput(
     }
 
     async function selectScript(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
-        const items = mflowCmd?.getScriptQuickPickItems() || [];
+        const items = trekCmd?.getScriptQuickPickItems() || [];
         const scriptSelect = await input.showQuickPick({
             title,
             step: 2,
@@ -136,13 +139,51 @@ export async function multiStepInput(
         }
     }
 
+    async function inputMarvinUrl(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
+        const rootPath = getRootPath();
+        let marvinUrl = getConfig(rootPath)?.marvin_url;
+        if (!marvinUrl) {
+            marvinUrl = getGlobalConfig()?.marvin_url;
+        }
+        marvinUrl = await input.showInputBox({
+            title,
+            step: 3,
+            totalSteps: 3,
+            value: marvinUrl,
+            prompt: "Please enter a marvin url?"
+        });
+        step.uri = Uri.parse(marvinUrl);
+    }
+
+    async function inputPassword(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
+        step.password = await input.showInputBox({
+            title,
+            step: 2,
+            totalSteps: 3,
+            value: step.password || "",
+            prompt: "Please enter password: "
+        });
+        return (input: MultiStepInput): Promise<void> => inputMarvinUrl(input, step);
+    }
+
+    async function inputUserName(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
+        step.name = await input.showInputBox({
+            title,
+            step: 1,
+            totalSteps: 3,
+            value: step.name || "",
+            prompt: "Please enter user name: "
+        });
+        return (input: MultiStepInput): Promise<InputStep> => inputPassword(input, step);
+    }
+
     const result = {} as Partial<StepResult>;
     if (multiStepType === MultiStepTypes.CREATE_PROJECT) {
         await MultiStepInput.run(input => selectLocation(input, result));
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Creating mflow Project '${result.name}'`);
+            window.showInformationMessage(`Creating Trek Project '${result.name}'`);
         } else {
             result.isSuc = false;
         }
@@ -151,7 +192,16 @@ export async function multiStepInput(
         if (result.type && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Deploy mflow Project to Marvel`);
+            window.showInformationMessage(`Deploy Trek Project to Marvin`);
+        } else {
+            result.isSuc = false;
+        }
+    } else if (multiStepType === MultiStepTypes.LOGIN) {
+        await MultiStepInput.run(input => inputUserName(input, result));
+        if (result.name && result.password && result.uri) {
+            result.title = title;
+            result.isSuc = true;
+            window.showInformationMessage(`Login to Marvin.`);
         } else {
             result.isSuc = false;
         }
