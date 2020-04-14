@@ -5,6 +5,15 @@ import os from "os";
 import { workspace } from "vscode";
 
 /**
+ * Get workspace root path.
+ */
+export function getRootPath(): string {
+    const workspaceFolders = workspace.workspaceFolders;
+    const rootPath = workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.path : "";
+    return rootPath;
+}
+
+/**
  * Get file url of workflow graph yaml
  * @param rootPath: workspeace root.
  */
@@ -38,12 +47,12 @@ export function getWfYaml(wfUri: string): string | undefined {
 }
 
 /**
- * Get mflow project config json
+ * Get trek project config json
  * @param rootPath: the workspece path.
  */
 export function getConfig(rootPath: string): any {
     if (!rootPath) return;
-    const projectConfigPath = path.join(rootPath, ".mflow", "config.json");
+    const projectConfigPath = path.join(rootPath, ".trek", "config.json");
     if (!fs.existsSync(projectConfigPath)) {
         return;
     }
@@ -53,25 +62,25 @@ export function getConfig(rootPath: string): any {
 }
 
 /**
- * Get mflow global config json
+ * Get trek global config json
  */
 export function getGlobalConfig(): any {
-    const globalConfigPath = path.join(os.homedir(), ".mflow", "config.json");
+    const globalConfigPath = path.join(os.homedir(), ".trek", "config.json");
     if (!fs.existsSync(globalConfigPath)) {
         return;
     }
-    return yaml.safeLoad(fs.readFileSync(path.join(os.homedir(), ".mflow", "config.json"), "utf8"), {
+    return yaml.safeLoad(fs.readFileSync(path.join(os.homedir(), ".trek", "config.json"), "utf8"), {
         schema: yaml.JSON_SCHEMA
     });
 }
 
 /**
- * Get MFlow path from setting
+ * Get trek path from setting
  */
-export function getMFlowPath(): string {
-    let mflowPath = workspace.getConfiguration().get<string>("mflow.path");
-    if (!mflowPath) {
-        mflowPath = "mflow";
+export function getTrekPath(): string {
+    let trekPath = workspace.getConfiguration().get<string>("Trek.path");
+    if (!trekPath) {
+        trekPath = "trek";
     }
-    return mflowPath;
+    return trekPath;
 }

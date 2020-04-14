@@ -1,8 +1,5 @@
-# core.vscode.extension.mflow
-VSCode extension - mflow
+# Pentium VSCode Extension - Trek
 
-1. After clone src code, excute `npm install` under the src foldor.
-2. You may use `npm run lint` to verify code.
-3. Re-package vsix: `vsce package`
+Trek 是一個幫助你開發 Marvin 上的自動化開發開發自動化流程腳本的工具。
 
-User guide: https://wiki.pentium.network/x/ywIrAg
+從你的第一個腳本，一直到優化複雜的複雜的工作流程，可以在本機上完成所有的開發包含撰寫腳本、工作流程、除錯、開發工作流程，最後部署你開發的工具到你指定的 Marvin 平台。

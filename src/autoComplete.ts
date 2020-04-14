@@ -69,7 +69,7 @@ export class ScriptAutoComplete extends AutoComplete {
         for (const i in lineTexts) {
             if (isArray) {
                 isArray = false;
-                options = !lineTexts[i].match(/\d/) ? options.items : {};
+                options = lineTexts[i].match(/\d/) ? options.items : {};
             } else {
                 options = options ? options[lineTexts[i]] : [];
             }
@@ -153,7 +153,7 @@ export class EventAutoComplete extends AutoComplete {
  * @param rootPath: workspeace root.
  * @param wfYaml: the newest saved workflow templaye yaml.
  * @param wfScript: the newest saved script info from workflow templaye.
- * @param ouput: The mflow output channel.
+ * @param ouput: The Trek output channel.
  * @param document: workflow templaye graph content.
  * @param position: trigger position in document.
  */
