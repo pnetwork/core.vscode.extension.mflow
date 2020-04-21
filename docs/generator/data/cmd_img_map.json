@@ -1,0 +1,110 @@
+{
+    "Trek: Build and Push": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "建置 trek 專案 image 檔，依 openfaas.yaml 描述產生對應 docker image，並將其 push 至 docker hub。"
+    },
+    "Trek: Create Ansible": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "建立一個 ansible 專案。"
+    },
+    "Trek: Create Blcks": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "建立一個 blcks 專案。"
+    },
+    "Trek: Create Project": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "建立一個全新的 trek 專案。"
+    },
+    "Trek: Create Shell": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "建立一個 shell 專案。"
+    },
+    "Trek: Deploy Packed Packages to Marvin": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "\n發佈專案至 Marvin 平台。\n預設只發佈 workflow， 若需要將所有腳本也一併發佈的話可使用 -a。 若已經安裝過（ id 重複） 的情況會詢問是否要覆蓋， 可使用 -y 來自動同意。 "
+    },
+    "Trek: Deploy to Marvin": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "Build, push, pack 和 deploy 專案至 Marvin 平台，且產生workflow graph 的節點位置 (xAxis/yAxis)。預設只發佈 workflow，若需要將所有腳本也一併發佈的話可使用 -a。若已經安裝過 （ id 重複）的情況會詢問是否要覆蓋，可使用 -y 來自動同意。"
+    },
+    "Trek: Init Env": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "啟動執行環境：啟動 trek 專案相關 containers。"
+    },
+    "Trek: Install Script": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "從遠端下載腳本並安裝至本地端。支援下載指定腳本、 或將 packages.json 檔案中定義的腳本全部下載。"
+    },
+    "Trek: List Installed Scripts": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "列出已安裝腳本及版號。"
+    },
+    "Trek: List Remote Scripts": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "列出遠端機器上的腳本及版號 (config.json 中 script_repository)。"
+    },
+    "Trek: Login to Marvin": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "登入 Marvin 平台。"
+    },
+    "Trek: Logs": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "顯示執行日誌，支援查看全部日誌或是查看指定腳本 id 日誌。"
+    },
+    "Trek: Pack": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "打包 mflow 專案。將產生 workflow graph 所有節點產生位置 (xAxis/yAxis) 並與 inline script 一起打包成 zip 並置於 bin 資料夾中。若使用 -a 則會將使用到的腳本也個別打包至 bin （會有多個 zip）。"
+    },
+    "Trek: Run": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "執行工作流程。"
+    },
+    "Trek: Shutdown Env": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "關閉執行環境：關閉 trek 專案相關 containers。"
+    },
+    "Trek: Uninstall Script": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "指定腳本，移除本地端已安裝腳本。"
+    },
+    "Trek: Version": {
+        "imgs": [
+            "../_static/images/  ."
+        ],
+        "desc": "查看 trek 版本。"
+    }
+}
