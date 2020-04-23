@@ -3,7 +3,12 @@
 {{ command_name }}
 *****************************************************************
 
-{{ command_desc }}
+Purpose:
 
+  | {{ command_desc }}
 
-{{doc_string}}
+{% if doc_string %}
+Usage:
+
+{{ doc_string }}
+{% endif %}

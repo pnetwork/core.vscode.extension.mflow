@@ -5,12 +5,13 @@ from jinja2 import Environment, BaseLoader
 from click import Context
 import yaml
 import json
+import re
 
 # from trek import main
 
 
 def generate_docs(root_dir):
-    # /Users/chelsealo/code/src_code/mflow-extension/docs
+    usage_doc_path = os.path.join(root_dir, "generator", "data")
     ref_doc_path = os.path.join(root_dir, "reference")
     commands_doc_path = os.path.join(ref_doc_path, "commands")
     os.makedirs(commands_doc_path, exist_ok=True)
@@ -30,11 +31,6 @@ def generate_docs(root_dir):
         command_names.append(cmd["title"])
     command_names.sort()
 
-    # commands_dic = { i: {"imgs": [os.path.join("..", "_static", "images", "  .")], "desc": ""} for i in command_names}
-    # jj = json.dumps(commands_dic, indent=4, separators=(',', ': '))
-    # with open(os.path.join(root_dir, "generator", "data", "cmd_img_map.json"), 'w') as f:
-    #     f.write(jj);
-
     # commands.rst
     render_data = {"commands": command_names}
     build_from_template(
@@ -44,7 +40,7 @@ def generate_docs(root_dir):
         render_data,
     )
 
-    map_path = os.path.join(root_dir, "generator", "data", "cmd_img_map.json")
+    map_path = os.path.join(root_dir, "generator", "data", "cmd_map.json")
     json_data = ""
     with open(map_path, 'r') as file_data:
         json_data = file_data.read()
@@ -53,10 +49,20 @@ def generate_docs(root_dir):
     # commands in reference
     for cmd in command_names:
         filepath = os.path.join(commands_doc_path, f"{cmd}.rst")
+        u_path = map_file.get(cmd, {}).get("usagePath")
+        doc_string = ""
+        u_filepath = os.path.join(usage_doc_path ,u_path) if u_path else ""
+
+        if u_filepath and os.path.isfile(u_filepath):
+            with open(u_filepath, "r") as tmp_file:
+                doc_string = tmp_file.read()
+        else:
+            doc_string = newline(map_file.get(cmd, {}).get("usage", ""))
+
         render_data = {
             "command_name": cmd,
             "command_desc": newline(map_file.get(cmd, {}).get("desc", "")),
-            # "doc_string": trim_doc(cmd_obj.callback.__doc__),
+            "doc_string": doc_string,
         }
         build_from_template(jinja_env, "command_detail.tmp", filepath, render_data)
 
@@ -85,12 +91,16 @@ def build_from_template(jinja_env, template_filename, target_path, render_data):
         content = tmp_file.read()
         template = jinja_env.from_string(content)
         render_result = template.render(render_data)
-
+    
     with open(target_path, "w+") as f:
         f.write(render_result)
 
 def newline(val):
-    return val.replace("\n", "\n| ")
+    regex = re.search(r"(\s+)\|(\s+)", val)
+    pre = regex.group(1) if regex and len(regex.groups()) > 1 else ""
+    post = regex.group(2) if regex and len(regex.groups()) > 2 else ""
+
+    return val.replace("|", "\n" + pre + "|" + post)
 
 def trim_doc(docstring):
     if not docstring:
@@ -108,5 +118,5 @@ def trim_doc(docstring):
     return "\n".join(trimmed_lines)
 
 
-if __name__ == "__main__":
-    generate_docs("/Users/chelsealo/code/src_code/mflow-extension/docs")
+# if __name__ == "__main__":
+#     generate_docs("/Users/chelsealo/code/src_code/mflow-extension/docs")
