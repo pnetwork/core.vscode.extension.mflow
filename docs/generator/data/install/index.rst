@@ -6,7 +6,7 @@
       
         .. code-block:: shell
 
-            # {your_trek_project}/packages.json
+            # {your_trek_project_path}/packages.json
             {
                 "packages": {
                     "blckssettags": "==0.5.0"
