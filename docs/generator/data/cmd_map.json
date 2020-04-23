@@ -5,11 +5,11 @@
     },
     "Trek: Create Ansible": {
         "usage": "- :Please enter ansible name: 請輸入 ansible 腳本專案的名稱。",
-        "desc": "建立一個 ansible 專案。| 建置位址會在 ``{your_trek_project}/src/ansible/{your_ansible_project}`` 。"
+        "desc": "建立一個 ansible 專案。  | 建置位址會在 ``{your_trek_project}/src/ansible/{your_ansible_project}`` 。"
     },
     "Trek: Create Blcks": {
         "usage": "- :Please enter blcks name: 請輸入 blcks 腳本專案的名稱。",
-        "desc": "建立一個 blcks 專案。| 建置位址會在 ``{your_trek_project}/src/ansible/{your_blcks_project}`` 。"
+        "desc": "建立一個 blcks 專案。  | 建置位址會在 ``{your_trek_project}/src/ansible/{your_blcks_project}`` 。"
     },
     "Trek: Create Project": {
         "usagePath": "create_project/index.rst",
@@ -17,7 +17,7 @@
     },
     "Trek: Create Shell": {
         "usage": "- :Please enter shell name: 請輸入 shell 腳本專案的名稱。",
-        "desc": "建立一個 shell 專案。| 建置位址會在 ``{your_trek_project}/src/ansible/{your_shell_project}`` 。"
+        "desc": "建立一個 shell 專案。  | 建置位址會在 ``{your_trek_project}/src/ansible/{your_shell_project}`` 。"
     },
     "Trek: Deploy Packed Packages to Marvin": {
         "usagePath": "deploy/index.rst",
@@ -35,11 +35,11 @@
         "desc": "從遠端下載腳本並安裝至 trek 專案中。  | 可下載指定腳本、或將 *packages.json* 檔案中定義的腳本全部下載。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定"
     },
     "Trek: List Installed Scripts": {
-        "desc": "列出 trek 專案已安裝腳本及版號。  |遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
+        "desc": "列出 trek 專案已安裝腳本及版號。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
     },
     "Trek: List Remote Scripts": {
         "usagePath": "list_script/index.rst",
-        "desc": "列出遠端機器上的腳本及版號。  |遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
+        "desc": "列出遠端機器上的腳本及版號。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
     },
     "Trek: Login to Marvin": {
         "usagePath": "login/index.rst",
@@ -54,7 +54,7 @@
         "desc": "打包 trek 專案。  | 將產生 workflow template 任務節點位置，與 inline script 一起打包成 zip 並放置於 *{your_trek_project}/bin* 資料夾中。"
     },
     "Trek: Run": {
-        "desc": "執行工作流程。  | 當環境尚未啟動時，會先啟動環境，再依 workflow template 描述流程執行。\n  .. note:: 啟動環境說明請參考 :doc:`./Trek: Init Env`。"
+        "desc": "執行工作流程。  | 當環境尚未啟動時，會先啟動環境，再依 workflow template 描述流程執行。\n\n  .. note:: 啟動環境說明請參考 :doc:`./init_env`。"
     },
     "Trek: Shutdown Env": {
         "desc": "關閉執行環境。  | 關閉所有與由 trek 產生的 docker containers。"

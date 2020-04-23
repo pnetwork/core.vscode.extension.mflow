@@ -18,6 +18,7 @@ def generate_docs(root_dir):
     jinja_env = get_jinja_env()
     
     command_names = []
+    file_names = []
     doc_path = os.path.join(root_dir, "..", "package.json")
     yaml_data = ""
     with open(doc_path, 'r') as file_data:
@@ -28,11 +29,13 @@ def generate_docs(root_dir):
     for cmd in commands:
         if cmd.get("enablement"):
             continue
+        file_names.append(cmd["title"].replace("Trek: ", "").replace(" ", "_").lower())
         command_names.append(cmd["title"])
     command_names.sort()
+    file_names.sort()
 
     # commands.rst
-    render_data = {"commands": command_names}
+    render_data = {"commands": command_names, "filename": file_names}
     build_from_template(
         jinja_env,
         "commands.tmp",
@@ -47,8 +50,10 @@ def generate_docs(root_dir):
     map_file = yaml.safe_load(json_data)
 
     # commands in reference
+    i = 0
     for cmd in command_names:
-        filepath = os.path.join(commands_doc_path, f"{cmd}.rst")
+        filename = file_names[i]
+        filepath = os.path.join(commands_doc_path, f"{filename}.rst")
         u_path = map_file.get(cmd, {}).get("usagePath")
         doc_string = ""
         u_filepath = os.path.join(usage_doc_path ,u_path) if u_path else ""
@@ -65,6 +70,7 @@ def generate_docs(root_dir):
             "doc_string": doc_string,
         }
         build_from_template(jinja_env, "command_detail.tmp", filepath, render_data)
+        i += 1
 
 
 def to_pretty_json(value):
