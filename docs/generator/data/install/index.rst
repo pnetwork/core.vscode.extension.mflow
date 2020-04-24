@@ -2,7 +2,7 @@
     | 填入 pattern 為 ``*`` 或 ``{scriptid}=={version}``。
     | 請輸入腳本 id 及版號，以安裝 notification 腳本為例：
     
-    - ``*`` : 依 trek project 的 *./packages.json* 檔案中所描述的腳本進行下載。
+    - ``*`` : 依 Trek project 的 *./packages.json* 檔案中所描述的腳本進行下載。
       
         .. code-block:: shell
 
