@@ -72,7 +72,7 @@ export class CliCommands {
         if (version && version.length > 0 && version[0] >= this.trekReguireVersion) {
             return;
         }
-        window.showErrorMessage(`Trek cli tool version must >= ${this.trekReguireVersion}.`);
+        window.showErrorMessage(`Trek CLI tool version must >= ${this.trekReguireVersion}.`);
     }
 
     /**
