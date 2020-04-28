@@ -2,7 +2,7 @@
     "name": "trek-extension",
     "displayName": "Pentium Trek",
     "description": "",
-    "version": "1.0.0-beta",
+    "version": "1.0.1-beta",
     "publisher": "pentium",
     "engines": {
         "vscode": "^1.41.0"
@@ -37,14 +37,12 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "languages": [
-            {
-                "id": "yaml",
-                "extensions": [
-                    ".para"
-                ]
-            }
-        ],
+        "languages": [{
+            "id": "yaml",
+            "extensions": [
+                ".para"
+            ]
+        }],
         "configuration": {
             "type": "object",
             "title": "Pentium Trek",
@@ -56,8 +54,7 @@
                 }
             }
         },
-        "commands": [
-            {
+        "commands": [{
                 "command": "trek.show.version",
                 "title": "Trek: Version"
             },
@@ -144,14 +141,11 @@
             }
         ],
         "menus": {
-            "commandPalette": [
-                {
-                    "command": "trek.view.wf",
-                    "when": "false"
-                }
-            ],
-            "editor/title": [
-                {
+            "commandPalette": [{
+                "command": "trek.view.wf",
+                "when": "false"
+            }],
+            "editor/title": [{
                     "command": "trek.down",
                     "when": "resourceLangId == yaml && isWfYaml",
                     "group": "navigation@-1"
@@ -162,21 +156,17 @@
                     "group": "navigation@-2"
                 }
             ],
-            "editor/context": [
-                {
-                    "command": "trek.view.wf",
-                    "when": "resourceLangId == yaml",
-                    "group": "6_view",
-                    "alt": "trek.view.wf"
-                }
-            ]
+            "editor/context": [{
+                "command": "trek.view.wf",
+                "when": "resourceLangId == yaml",
+                "group": "6_view",
+                "alt": "trek.view.wf"
+            }]
         },
-        "snippets": [
-            {
-                "language": "yaml",
-                "path": "./snippets/snippets.json"
-            }
-        ]
+        "snippets": [{
+            "language": "yaml",
+            "path": "./snippets/snippets.json"
+        }]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
