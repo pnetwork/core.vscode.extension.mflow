@@ -11,3 +11,5 @@ vsc-extension-quickstart.md
 **/*.ts
 .pytest_cache/**
 node_modules/**/test/**
+docs/**
+requirements-docs.txt

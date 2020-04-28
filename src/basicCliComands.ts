@@ -30,6 +30,7 @@ export enum ScriptTypes {
 export class CliCommands {
     readonly noRootPathErrorMsg = "Please create or open trek project first!";
     readonly trekReguireVersion = "1.0.0-beta";
+    readonly installScriptFolder = "trek_packages";
     wfUri: string | undefined;
     wfYaml: any;
     wfScript: any;
@@ -71,7 +72,7 @@ export class CliCommands {
         if (version && version.length > 0 && version[0] >= this.trekReguireVersion) {
             return;
         }
-        window.showErrorMessage(`Trek cli tool version must >= ${this.trekReguireVersion}.`);
+        window.showErrorMessage(`Trek CLI tool version must >= ${this.trekReguireVersion}.`);
     }
 
     /**
@@ -113,7 +114,12 @@ export class CliCommands {
         try {
             const result = this.getScriptsFromWfTemplate();
             if (result) {
-                result.forEach(i => items.push({ label: i.scriptId, detail: i.scriptPath, description: i.scriptType }));
+                const installScriptPath = path.join(this.rootPath, this.installScriptFolder);
+                result.forEach(i => {
+                    if (!i.scriptPath.startsWith(installScriptPath)) {
+                        items.push({ label: i.scriptId, detail: i.scriptPath, description: i.scriptType });
+                    }
+                });
             }
         } catch (e) {
             window.showErrorMessage("Please check workflow template is in the right format!");
@@ -278,8 +284,8 @@ export class CliCommands {
                 const scriptPath = scriptSelect.detail;
                 const scriptType = scriptSelect.description;
                 this.sendTerminal(
-                    `${this.trekPath} ${scriptType} build -p ${scriptPath}`,
-                    `${this.trekPath} ${scriptType} push -p ${scriptPath}`
+                    `${this.trekPath} build${scriptType} -p ${scriptPath}`,
+                    `${this.trekPath} push${scriptType} -p ${scriptPath}`
                 );
             });
         } else {
@@ -300,7 +306,7 @@ export class CliCommands {
                 if (!scriptSelect) return;
                 const scriptPath = scriptSelect.detail;
                 const scriptType = scriptSelect.description;
-                this.sendTerminal(`${this.trekPath} ${scriptType} pack -p ${scriptPath}`);
+                this.sendTerminal(`${this.trekPath} pack${scriptType} -p ${scriptPath}`);
             });
         } else {
             const packTartget = itemType.label === PackTypes.ALL ? "-a" : "";
@@ -328,7 +334,7 @@ export class CliCommands {
         option = isAuto ? option + " --autobuildpush --autopack" : option;
         if (type === PackTypes.SCRIPT) {
             option = `-p ${scriptUri?.fsPath} ` + option;
-            this.sendTerminal(`${this.trekPath} ${scriptType} deploy ${option} `);
+            this.sendTerminal(`${this.trekPath} deploy${scriptType} ${option} `);
         } else {
             option = type === PackTypes.ALL ? "-a " + option : option;
             this.sendTerminal(`${this.trekPath} deploy ${option}`);
