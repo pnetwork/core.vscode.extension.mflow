@@ -16,6 +16,7 @@ interface InputBoxParameters {
     prompt: string;
     placeHolder?: string;
     validate?: (value: string) => string | undefined;
+    password?: boolean;
     buttons?: QuickInputButton[];
 }
 
@@ -120,6 +121,7 @@ export class MultiStepInput {
         prompt,
         placeHolder,
         validate,
+        password,
         buttons
     }: P): Promise<any> {
         const disposables: Disposable[] = [];
@@ -132,6 +134,9 @@ export class MultiStepInput {
                 input.value = value || "";
                 input.prompt = prompt;
                 input.placeholder = placeHolder;
+                if (password) {
+                    input.password = password;
+                }
                 input.buttons = [...(this.steps.length > 1 ? [QuickInputButtons.Back] : []), ...(buttons || [])];
                 disposables.push(
                     input.onDidTriggerButton(item => {

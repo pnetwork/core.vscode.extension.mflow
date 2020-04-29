@@ -161,7 +161,8 @@ export async function multiStepInput(
             step: 2,
             totalSteps: 3,
             value: step.password || "",
-            prompt: "Please enter password: "
+            prompt: "Please enter password: ",
+            password: true
         });
         return (input: MultiStepInput): Promise<void> => inputMarvinUrl(input, step);
     }

@@ -1,0 +1,69 @@
+{
+    "Trek: Build and Push": {
+        "usagePath": "build_and_push/index.rst",
+        "desc": "建置 Trek 專案 image 檔，依 openfaas.yaml 描述產生對應 docker image，並將其 push 至 docker hub。"
+    },
+    "Trek: Create Ansible": {
+        "usage": "- :Please enter ansible name: 請輸入 ansible 腳本專案的名稱。",
+        "desc": "建立一個 ansible 專案。  | 建置位址會在 ``{your_trek_project_path}/src/ansible/{your_ansible_project}`` 。"
+    },
+    "Trek: Create Blcks": {
+        "usage": "- :Please enter blcks name: 請輸入 blcks 腳本專案的名稱。",
+        "desc": "建立一個 blcks 專案。  | 建置位址會在 ``{your_trek_project_path}/src/ansible/{your_blcks_project}`` 。"
+    },
+    "Trek: Create Project": {
+        "usagePath": "create_project/index.rst",
+        "desc": "建立一個全新的 Trek 專案。"
+    },
+    "Trek: Create Shell": {
+        "usage": "- :Please enter shell name: 請輸入 shell 腳本專案的名稱。",
+        "desc": "建立一個 shell 專案。  | 建置位址會在 ``{your_trek_project_path}/src/ansible/{your_shell_project}`` 。"
+    },
+    "Trek: Deploy Packed Packages to Marvin": {
+        "usagePath": "deploy/index.rst",
+        "desc": "發佈已 packed 的專案至 Marvin 平台。"
+    },
+    "Trek: Deploy to Marvin": {
+        "usagePath": "deploy_to_marvin/index.rst",
+        "desc": "Build, push, pack 和 deploy 專案至 Marvin 平台，將在 pack 時自動產生 workflow graph 的任務節點位置。"
+    },
+    "Trek: Init Env": {
+        "desc": "啟動執行環境，找尋 workflow template 所使用到的腳本，分別以 docker containers 方式啟動。"
+    },
+    "Trek: Install Script": {
+        "usagePath": "install/index.rst",
+        "desc": "從遠端下載腳本並安裝至 Trek 專案中。  | 可下載指定腳本、或將 *packages.json* 檔案中定義的腳本全部下載。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定"
+    },
+    "Trek: List Installed Scripts": {
+        "desc": "列出 Trek 專案已安裝腳本及版號。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
+    },
+    "Trek: List Remote Scripts": {
+        "usagePath": "list_script/index.rst",
+        "desc": "列出遠端機器上的腳本及版號。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
+    },
+    "Trek: Login to Marvin": {
+        "usagePath": "login/index.rst",
+        "desc": "登入 Marvin 平台。"
+    },
+    "Trek: Logs": {
+        "usagePath": "log/index.rst",
+        "desc": "顯示執行日誌，支援查看全部日誌或是查看指定腳本 id 日誌。"
+    },
+    "Trek: Pack": {
+        "usagePath": "pack/index.rst",
+        "desc": "打包 Trek 專案。  | 將產生 workflow template 任務節點位置，與 inline script 一起打包成 zip 並放置於 *{your_trek_project_path}/bin* 資料夾中。"
+    },
+    "Trek: Run": {
+        "desc": "執行工作流程。  | 當環境尚未啟動時，會先啟動環境，再依 workflow template 描述流程執行。\n\n  .. note:: 啟動環境說明請參考 :doc:`./init_env`。"
+    },
+    "Trek: Shutdown Env": {
+        "desc": "關閉執行環境。  | 關閉所有與由 Trek 產生的 docker containers。"
+    },
+    "Trek: Uninstall Script": {
+        "usage": "- :Please enter script id: 請輸入想移除的腳本 id。",
+        "desc": "指定腳本，移除 Trek 專案中已安裝腳本。  | 將從 *{your_trek_project_path}/bin* 資料夾中移除該腳本。"
+    },
+    "Trek: Version": {
+        "desc": "查看 Trek 版本。"
+    }
+}

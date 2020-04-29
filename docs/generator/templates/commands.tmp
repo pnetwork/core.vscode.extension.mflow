@@ -1,0 +1,9 @@
+********************************************************
+Commands
+********************************************************
+
+All commands of Trek vscode extension.
+
+{% for cmd in commands %}
+* :doc:`{{cmd}} </reference/commands/{{ filename[loop.index0] }}>`
+{%- endfor -%}
