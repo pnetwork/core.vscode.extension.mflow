@@ -4,20 +4,20 @@
         "desc": "建置 Trek 專案 image 檔，依 openfaas.yaml 描述產生對應 docker image，並將其 push 至 docker hub。"
     },
     "Trek: Create Ansible": {
-        "usage": "- :Please enter ansible name: 請輸入 ansible 腳本專案的名稱。",
-        "desc": "建立一個 ansible 專案。  | 建置位址會在 ``{your_trek_project_path}/src/ansible/{your_ansible_project}`` 。"
+        "usagePath": "create_ansible/index.rst",
+        "desc": "建立一個 ansible 專案。  | 當在 workflow 專案下執行時，建置位址會在 `{your_trek_project_path}/src/ansible/{your_ansible_project}``，若非 workflow 專案則會要選取腳本建立位置。"
     },
     "Trek: Create Blcks": {
-        "usage": "- :Please enter blcks name: 請輸入 blcks 腳本專案的名稱。",
-        "desc": "建立一個 blcks 專案。  | 建置位址會在 ``{your_trek_project_path}/src/ansible/{your_blcks_project}`` 。"
+        "usagePath": "create_blcks/index.rst",
+        "desc": "建立一個 blcks 專案。  | 當在 workflow 專案下執行時，建置位址會在 ``{your_trek_project_path}/src/ansible/{your_blcks_project}``，若非 workflow 專案則會要選取腳本建立位置。"
     },
     "Trek: Create Project": {
         "usagePath": "create_project/index.rst",
         "desc": "建立一個全新的 Trek 專案。"
     },
     "Trek: Create Shell": {
-        "usage": "- :Please enter shell name: 請輸入 shell 腳本專案的名稱。",
-        "desc": "建立一個 shell 專案。  | 建置位址會在 ``{your_trek_project_path}/src/ansible/{your_shell_project}`` 。"
+        "usagePath": "create_shell/index.rst",
+        "desc": "建立一個 shell 專案。  | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/ansible/{your_shell_project}``，若非 workflow 專案則會要選取腳本建立位置。"
     },
     "Trek: Deploy Packed Packages to Marvin": {
         "usagePath": "deploy/index.rst",
@@ -55,6 +55,9 @@
     },
     "Trek: Run": {
         "desc": "執行工作流程。  | 當環境尚未啟動時，會先啟動環境，再依 workflow template 描述流程執行。\n\n  .. note:: 啟動環境說明請參考 :doc:`./init_env`。"
+    },
+    "Trek: Run Blcks": {
+        "desc": "執行 Blcks 腳本。  | 啟動 Blcks container 環境，再執行腳本。會依照腳本內的設定檔 {your_blcks_path}/.trek/config.json 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
     },
     "Trek: Shutdown Env": {
         "desc": "關閉執行環境。  | 關閉所有與由 Trek 產生的 docker containers。"

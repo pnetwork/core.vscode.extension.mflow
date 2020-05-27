@@ -114,7 +114,7 @@ export async function multiStepInput(
             step: stepNum,
             totalSteps: totalSteps,
             value: step.name || "",
-            prompt: "Please enter project name: ",
+            prompt: "Please enter script name: ",
             validate: text =>
                 !scriptNameReg.test(text) ? "Script name should be number(0-9) or lowercase letter(a-z)." : undefined
         });
@@ -265,7 +265,7 @@ export async function multiStepInput(
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Creating ${scriptType} Project '${result.name}'`);
+            window.showInformationMessage(`Creating Trek Project '${result.name}'`);
         } else {
             result.isSuc = false;
         }
@@ -276,7 +276,7 @@ export async function multiStepInput(
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Creating Trek Project '${result.name}'`);
+            window.showInformationMessage(`Creating ${scriptType} Project '${result.name}'`);
         } else {
             result.isSuc = false;
         }
@@ -287,7 +287,7 @@ export async function multiStepInput(
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Creating Trek Project '${result.name}'`);
+            window.showInformationMessage(`Creating ${scriptType} Project '${result.name}'`);
         } else {
             result.isSuc = false;
         }
