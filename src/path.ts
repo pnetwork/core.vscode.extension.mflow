@@ -35,7 +35,7 @@ export function getWfUri(rootPath: string): string | undefined {
  * Get workflow graph yaml
  * @param wfUri: workspeace file url.
  */
-export function getWfYaml(wfUri: string): string | undefined {
+export function getWfYaml(wfUri: string): any | undefined {
     let wfYaml: any;
     if (!wfUri) return;
     try {

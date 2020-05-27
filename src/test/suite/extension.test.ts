@@ -31,6 +31,7 @@ suite("Extension Test Suite", function() {
             "trek.view.wf",
             "trek.up",
             "trek.run",
+            "trek.blcks.run",
             "trek.down",
             "trek.build",
             "trek.logs",

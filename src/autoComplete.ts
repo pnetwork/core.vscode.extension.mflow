@@ -2,8 +2,7 @@ import { OutputChannel, CompletionItem, CompletionItemKind, TextDocument, Positi
 import yaml from "js-yaml";
 import path from "path";
 import fs from "fs";
-import { getConfig, getGlobalConfig } from "./path";
-import { getTextbyRegex } from "./util";
+import { getTextbyRegex, getConfigProperty } from "./util";
 
 export class MCompletionItem extends CompletionItem {
     filterText = ".";
@@ -15,12 +14,8 @@ export class MCompletionItem extends CompletionItem {
  * Define members who needed in event/script auto comlate.
  */
 abstract class AutoComplete {
-    config: any;
-    gbConfig: any;
-    constructor(public rootPath: string, public wfYaml: any, public ouput: OutputChannel) {
-        this.config = getConfig(this.rootPath);
-        this.gbConfig = getGlobalConfig();
-    }
+    // eslint-disable-next-line no-useless-constructor
+    constructor(public rootPath: string, public wfYaml: any, public ouput: OutputChannel) {}
 
     protected abstract getSchemaYaml(nodeId?: string): any;
     /**
@@ -110,7 +105,7 @@ export class EventAutoComplete extends AutoComplete {
      * @param nodeId: the node id from wf template graph.yaml.
      */
     protected getSchemaYaml(): any {
-        let eventPath = this.config.input_event_path ? this.config.input_event_path : this.gbConfig.input_event_path;
+        let eventPath = getConfigProperty("input_event_path");
         if (!eventPath) return;
         this.ouput.appendLine(`Event auto complete: event path is ${eventPath}.`);
         eventPath = path.join(this.rootPath, eventPath);
