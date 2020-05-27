@@ -49,6 +49,7 @@ function verifyYesorNo(input: string): boolean {
  * @param title: Window title.
  * @param multiStepType: MultiStepTypes.
  * @param trekCmd: Trek command obj.
+ * @param scriptType: The scripts type.
  */
 export async function multiStepInput(
     title: string,
@@ -78,7 +79,7 @@ export async function multiStepInput(
         });
     }
     async function selectBlcks(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
-        const items = trekCmd?.getBlcksQuickPickItems() || [];
+        const items = trekCmd.getBlcksQuickPickItems() || [];
         const scriptSelect = await input.showQuickPick({
             title,
             step: 1,
@@ -191,7 +192,7 @@ export async function multiStepInput(
     }
 
     async function selectScript(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
-        const items = trekCmd?.getScriptQuickPickItems() || [];
+        const items = trekCmd.getScriptQuickPickItems() || [];
         const scriptSelect = await input.showQuickPick({
             title,
             step: 2,
