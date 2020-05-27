@@ -29,5 +29,5 @@
     │   └── config.json
     ├── inputs
     │   └── event.yml
-    ├── ss.para
-    └── ss.sh
+    ├── myshellproject.para
+    └── myshellproject.sh

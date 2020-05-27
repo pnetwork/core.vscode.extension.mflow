@@ -27,7 +27,7 @@
     myansibleproject/
     ├── .trek
     │   └── config.json
-    ├── an.para
-    ├── an.yml
+    ├── myansibleproject.para
+    ├── myansibleproject.yml
     └── inputs
         └── event.yml
