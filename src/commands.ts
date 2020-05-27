@@ -49,15 +49,16 @@ export class TrekCommand extends CliCommands {
 
     public createScriptCmd(scriptType: ScriptTypes): Disposable {
         return commands.registerCommand(`trek.${scriptType}.create`, async () => {
-            const result = await multiStepInput(
-                "Create Trek project",
-                MultiStepTypes.CREATE_SCRIPT,
-                this,
-                isWorkflowProject(this.rootPath),
-                scriptType
-            );
+            const isWf = isWorkflowProject(this.rootPath);
+            let result: any;
+            const title = `Create ${scriptType} project`;
+            if (isWf) {
+                result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT_IN_WF, this, scriptType);
+            } else {
+                result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT, this, scriptType);
+            }
             if (result && result.isSuc) {
-                await this.createScript(scriptType, result.name, result.uri, result.yn.toUpperCase() === "Y");
+                await this.createScript(scriptType, result.name, result.uri, result.yn.toUpperCase() === "Y", isWf);
             }
         });
     }

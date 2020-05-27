@@ -11,6 +11,7 @@ import path from "path";
  */
 export enum MultiStepTypes {
     CREATE_PROJECT,
+    CREATE_SCRIPT_IN_WF,
     CREATE_SCRIPT,
     DEPLOY,
     LOGIN,
@@ -53,7 +54,6 @@ export async function multiStepInput(
     title: string,
     multiStepType: MultiStepTypes,
     trekCmd: TrekCommand,
-    isWorkflowProject?: boolean,
     scriptType?: ScriptTypes
 ): Promise<StepResult> {
     async function askInputEvent(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
@@ -69,8 +69,8 @@ export async function multiStepInput(
     async function askOpenWorkspace(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
         step.yn = await input.showInputBox({
             title,
-            step: 3,
-            totalSteps: 3,
+            step: 2,
+            totalSteps: 2,
             value: step.yn || "",
             prompt: "Open blcks project in new window?",
             placeHolder: "Y/N",
@@ -103,41 +103,59 @@ export async function multiStepInput(
             validate: text => (!verifyYesorNo(text) ? "Input value should be Y or N." : undefined)
         });
     }
-    async function inputProjectName(
-        isScript: boolean,
+    async function inputScriptName(
         input: MultiStepInput,
-        step: Partial<StepResult>
-    ): Promise<InputStep> {
-        if (isScript) {
-            step.name = await input.showInputBox({
-                title,
-                step: 2,
-                totalSteps: 3,
-                value: step.name || "",
-                prompt: "Please enter project name: ",
-                validate: text =>
-                    !scriptNameReg.test(text)
-                        ? "Script name should be number(0-9) or lowercase letter(a-z)."
-                        : undefined
-            });
-        } else {
-            step.name = await input.showInputBox({
-                title,
-                step: 2,
-                totalSteps: 3,
-                value: step.name || "",
-                prompt: "Please enter project name:"
-            });
+        step: Partial<StepResult>,
+        stepNum: number,
+        totalSteps: number
+    ): Promise<void | InputStep> {
+        step.name = await input.showInputBox({
+            title,
+            step: stepNum,
+            totalSteps: totalSteps,
+            value: step.name || "",
+            prompt: "Please enter project name: ",
+            validate: text =>
+                !scriptNameReg.test(text) ? "Script name should be number(0-9) or lowercase letter(a-z)." : undefined
+        });
+        if (stepNum < totalSteps) {
+            return (input: MultiStepInput): Promise<void> => askOpenWorkspace(input, step);
         }
-
-        return (input: MultiStepInput): Promise<void> =>
-            isScript ? askOpenWorkspace(input, step) : askCreateSample(input, step);
     }
-    async function selectLocation(
-        isScript: boolean,
-        input: MultiStepInput,
-        step: Partial<StepResult>
-    ): Promise<InputStep> {
+    async function inputProjectName(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
+        step.name = await input.showInputBox({
+            title,
+            step: 2,
+            totalSteps: 3,
+            value: step.name || "",
+            prompt: "Please enter project name:"
+        });
+
+        return (input: MultiStepInput): Promise<void> => askCreateSample(input, step);
+    }
+    async function selectScritpLocation(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
+        const items = [{ label: "$(file-directory) Browse...", value: "0", description: "(recently used)" }];
+        if (step.uri) items.push({ label: step.uri.fsPath, value: "1", description: "(selected)" });
+        const pick = await input.showQuickPick({
+            title,
+            step: 1,
+            totalSteps: 2,
+            placeholder: "Select project location",
+            items: items,
+            activeItem: undefined,
+            value: step.uri?.fsPath || undefined
+        });
+        const defaultUri = pick.value === "1" ? Uri.parse(pick.label) : undefined;
+        if (pick.value !== "1") {
+            const folderUri = await createBrowseFolder(defaultUri);
+            if (!folderUri) {
+                return (input: MultiStepInput): Promise<InputStep> => selectScritpLocation(input, step);
+            }
+            step.uri = folderUri;
+        }
+        return (input: MultiStepInput): Promise<void | InputStep> => inputScriptName(input, step, 2, 2);
+    }
+    async function selectLocation(input: MultiStepInput, step: Partial<StepResult>): Promise<InputStep> {
         const items = [{ label: "$(file-directory) Browse...", value: "0", description: "(recently used)" }];
         if (step.uri) items.push({ label: step.uri.fsPath, value: "1", description: "(selected)" });
         const pick = await input.showQuickPick({
@@ -153,11 +171,11 @@ export async function multiStepInput(
         if (pick.value !== "1") {
             const folderUri = await createBrowseFolder(defaultUri);
             if (!folderUri) {
-                return (input: MultiStepInput): Promise<InputStep> => selectLocation(isScript, input, step);
+                return (input: MultiStepInput): Promise<InputStep> => selectLocation(input, step);
             }
             step.uri = folderUri;
         }
-        return (input: MultiStepInput): Promise<InputStep> => inputProjectName(isScript, input, step);
+        return (input: MultiStepInput): Promise<InputStep> => inputProjectName(input, step);
     }
 
     async function askOverwrite(input: MultiStepInput, step: Partial<StepResult>): Promise<void> {
@@ -243,7 +261,7 @@ export async function multiStepInput(
 
     const result = {} as Partial<StepResult>;
     if (multiStepType === MultiStepTypes.CREATE_PROJECT) {
-        await MultiStepInput.run(input => selectLocation(false, input, result));
+        await MultiStepInput.run(input => selectLocation(input, result));
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;
@@ -252,12 +270,20 @@ export async function multiStepInput(
             result.isSuc = false;
         }
     } else if (multiStepType === MultiStepTypes.CREATE_SCRIPT) {
-        if (isWorkflowProject) {
-            await MultiStepInput.run(input => inputProjectName(true, input, result));
-            result.uri = Uri.parse(path.join(trekCmd.rootPath));
+        await MultiStepInput.run(input => selectScritpLocation(input, result));
+        result.yn = "Y";
+
+        if (result.name && result.uri && result.yn) {
+            result.title = title;
+            result.isSuc = true;
+            window.showInformationMessage(`Creating Trek Project '${result.name}'`);
         } else {
-            await MultiStepInput.run(input => selectLocation(true, input, result));
+            result.isSuc = false;
         }
+    } else if (multiStepType === MultiStepTypes.CREATE_SCRIPT_IN_WF) {
+        await MultiStepInput.run(input => inputScriptName(input, result, 1, 2));
+        result.uri = Uri.parse(path.join(trekCmd.rootPath));
+
         if (result.name && result.uri && result.yn) {
             result.title = title;
             result.isSuc = true;

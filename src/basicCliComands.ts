@@ -204,7 +204,8 @@ export class CliCommands {
         scriptType: ScriptTypes,
         name: string,
         uri: Uri,
-        isOpenNewWorkspace: boolean
+        isOpenNewWorkspace: boolean,
+        isWf: boolean
     ): Promise<void> {
         this.output.appendLine(`Create ${scriptType} project ${name} in ${uri.fsPath}.`);
 
@@ -217,7 +218,7 @@ export class CliCommands {
             }
             if (isOpenNewWorkspace) {
                 const workspaceUri: Uri = Uri.parse(projectPath);
-                commands.executeCommand("vscode.openFolder", workspaceUri, true);
+                commands.executeCommand("vscode.openFolder", workspaceUri, isWf);
             } else {
                 const paraFile = Uri.parse(path.join(projectPath, `${name}.para`));
                 commands.executeCommand("vscode.open", paraFile);
