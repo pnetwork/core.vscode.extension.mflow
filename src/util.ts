@@ -2,6 +2,7 @@ import { TextDocument, Position } from "vscode";
 import path from "path";
 import fs from "fs";
 import { getConfig, getRootPath, getGlobalConfig } from "./path";
+import glob from "glob";
 
 /**
  * Script type.
@@ -64,6 +65,47 @@ export function isBlcksProject(rootPath: string): boolean {
     const openfaasFile = path.join(rootPath, "openfaas.yml");
     if (fs.existsSync(trekPath) && fs.existsSync(openfaasFile)) {
         return true;
+    }
+    return false;
+}
+
+function findPara(rootPath: string): string | undefined {
+    const file = glob.sync("**/*.para", { cwd: rootPath });
+    if (file && file.length > 0) {
+        return file[0];
+    }
+}
+
+/**
+ * Check workspace is ansible project or not.
+ * @param projectPath: Project path.
+ */
+export function isAnsibleProject(rootPath: string): boolean {
+    const trekPath = path.join(rootPath, ".trek/");
+    const filename = findPara(rootPath);
+    if (filename) {
+        const name = path.basename(filename);
+        const openfaasFile = path.join(rootPath, `${name}.yml`);
+        if (fs.existsSync(trekPath) && fs.existsSync(openfaasFile)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check workspace is shell project or not.
+ * @param projectPath: Project path.
+ */
+export function isShellProject(rootPath: string): boolean {
+    const trekPath = path.join(rootPath, ".trek/");
+    const filename = findPara(rootPath);
+    if (filename) {
+        const name = path.basename(filename);
+        const openfaasFile = path.join(rootPath, `${name}.sh`);
+        if (fs.existsSync(trekPath) && fs.existsSync(openfaasFile)) {
+            return true;
+        }
     }
     return false;
 }

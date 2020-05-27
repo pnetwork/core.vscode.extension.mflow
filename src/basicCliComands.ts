@@ -1,4 +1,4 @@
-import { window, Uri, OutputChannel, commands, QuickPickItem, TextDocument } from "vscode";
+import { window, Uri, OutputChannel, commands, TextDocument } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
@@ -6,7 +6,7 @@ import fs from "fs";
 import glob from "glob";
 import { activeTrekTerminal, createQuickPick, execCommandCallback } from "./basicInput";
 import { getWfUri, getWfYaml, getTrekPath } from "./path";
-import { ScriptTypes, isWorkflowProject } from "./util";
+import { ScriptTypes, isWorkflowProject, isAnsibleProject, isBlcksProject, isShellProject } from "./util";
 
 /**
  * Package source type.
@@ -43,6 +43,29 @@ export class CliCommands {
             this.wfScript = yaml.safeLoad(stdout.toString());
         });
         child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: rootPath }, openFile);
+    }
+
+    /**
+     * The project is match script type or not
+     * @param scriptType: the script project type
+     */
+    public matchScriptProject(scriptType: ScriptTypes): boolean {
+        let isMatch: boolean;
+        switch (scriptType) {
+            case ScriptTypes.ANSIBLE:
+                isMatch = isAnsibleProject(this.rootPath);
+                break;
+            case ScriptTypes.SHELL:
+                isMatch = isShellProject(this.rootPath);
+                break;
+            case ScriptTypes.BLCKS:
+                isMatch = isBlcksProject(this.rootPath);
+                break;
+        }
+        if (!isMatch) {
+            window.showErrorMessage(`Not ${scriptType} project: ${this.rootPath}`);
+        }
+        return isMatch;
     }
 
     /**
@@ -330,12 +353,20 @@ export class CliCommands {
 
     /**
      * Build and push the images depend on packType.
-     * @param itemType: Select script type.
+     * @param packType: Select build/push type.
+     * @param scriptType: The script pack command.
      */
-    public async buildPush(itemType: QuickPickItem): Promise<void> {
+    public async buildPush(packType: PackTypes, scriptType?: ScriptTypes): Promise<void> {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Build and push ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
+        // when on the blcks/ansible/shell project pack
+        if (scriptType) {
+            this.output.appendLine(`Build and push ${scriptType}.`);
+            this.sendTerminal(`${this.trekPath} build${scriptType}`, `${this.trekPath} push${scriptType}`);
+            return;
+        }
+        // The wf project pack
+        this.output.appendLine(`Build and push ${packType}.`);
+        if (packType === PackTypes.SCRIPT) {
             const scripts = this.getScriptQuickPickItems();
             await createQuickPick(scripts, scriptSelect => {
                 if (!scriptSelect) return;
@@ -353,12 +384,20 @@ export class CliCommands {
 
     /**
      * Pack the project depend on packType.
-     * @param itemType: Select script type.
+     * @param packType: Select package type.
+     * @param scriptType: The script pack command.
      */
-    public async pack(itemType: QuickPickItem): Promise<void> {
+    public async pack(packType: PackTypes, scriptType?: ScriptTypes): Promise<void> {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Pack ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
+        // when on the blcks/ansible/shell project pack
+        if (scriptType) {
+            this.output.appendLine(`Pack ${scriptType}.`);
+            this.sendTerminal(`${this.trekPath} pack${scriptType}`);
+            return;
+        }
+        // The wf project pack
+        this.output.appendLine(`Pack ${packType}.`);
+        if (packType === PackTypes.SCRIPT) {
             const scripts = this.getScriptQuickPickItems();
             await createQuickPick(scripts, scriptSelect => {
                 if (!scriptSelect) return;
@@ -367,7 +406,7 @@ export class CliCommands {
                 this.sendTerminal(`${this.trekPath} pack${scriptType} -p ${scriptPath}`);
             });
         } else {
-            const packTartget = itemType.label === PackTypes.ALL ? "-a" : "";
+            const packTartget = packType === PackTypes.ALL ? "-a" : "";
             this.sendTerminal(`${this.trekPath} pack ${packTartget} --auto-pos`);
         }
     }
@@ -391,7 +430,9 @@ export class CliCommands {
         let option = isOverwrite ? "-y " : "";
         option = isAuto ? option + " --autobuildpush --autopack" : option;
         if (type === PackTypes.SCRIPT) {
-            option = `-p ${scriptUri?.fsPath} ` + option;
+            if (scriptUri && scriptUri.fsPath) {
+                option = `-p ${scriptUri?.fsPath} ` + option;
+            }
             this.sendTerminal(`${this.trekPath} deploy${scriptType} ${option} `);
         } else {
             option = type === PackTypes.ALL ? "-a " + option : option;

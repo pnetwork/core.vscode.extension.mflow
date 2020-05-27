@@ -109,21 +109,11 @@ export class TrekCommand extends CliCommands {
     public runBlcksCmd(): Disposable {
         return commands.registerCommand("trek.blcks.run", async () => {
             if (!this.verifyRootPath()) return;
-            if (isWorkflowProject(this.rootPath)) {
-                const result = await multiStepInput("Run blcks project", MultiStepTypes.RUNBLCKS, this);
+            if (this.matchScriptProject(ScriptTypes.BLCKS)) {
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY_SCRIPT, this);
                 if (result && result.isSuc) {
-                    const configPath = path.join(result.uri.fsPath, ".trek", "config.json");
-
-                    const data = fs.readFileSync(configPath);
-                    const obj = JSON.parse(data.toString());
-                    // eslint-disable-next-line @typescript-eslint/camelcase
-                    obj.input_event_path = result.eventPath;
-                    const json = JSON.stringify(obj, null, 4);
-                    fs.writeFileSync(configPath, json);
-                    this.runBlcks(result.uri);
+                    this.runBlcks();
                 }
-            } else {
-                this.runBlcks();
             }
         });
     }
@@ -148,8 +138,18 @@ export class TrekCommand extends CliCommands {
             await commands.executeCommand("workbench.action.files.save");
             await createQuickPick(items, async selection => {
                 if (!selection) return;
-                await this.buildPush(selection);
+                const tp = PackTypes[selection.label as keyof typeof PackTypes];
+                await this.buildPush(tp);
             });
+        });
+    }
+
+    public buildBlcksCmd(): Disposable {
+        return commands.registerCommand(`trek.blcks.build`, async () => {
+            const scriptType = ScriptTypes.BLCKS;
+            if (this.matchScriptProject(scriptType)) {
+                await this.buildPush(PackTypes.SCRIPT, scriptType);
+            }
         });
     }
 
@@ -163,14 +163,36 @@ export class TrekCommand extends CliCommands {
         });
     }
 
+    public deployScriptCmd(isAuto: boolean, scriptType: ScriptTypes): Disposable {
+        const cmd = isAuto ? ".auto" : "";
+        return commands.registerCommand(`trek.${scriptType}.deploy` + cmd, async () => {
+            if (!this.verifyRootPath()) return;
+            if (this.matchScriptProject(scriptType)) {
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY_SCRIPT, this);
+                if (result && result.isSuc) {
+                    await this.deploy(isAuto, PackTypes.SCRIPT, result.yn.toUpperCase() === "Y", scriptType);
+                }
+            }
+        });
+    }
+
     public packCmd(): Disposable {
         return commands.registerCommand("trek.pack", async () => {
             const items = Object.values(PackTypes).map(label => ({ label }));
             await commands.executeCommand("workbench.action.files.save");
             await createQuickPick(items, async selection => {
                 if (!selection) return;
-                await this.pack(selection);
+                const tp = PackTypes[selection.label as keyof typeof PackTypes];
+                await this.pack(tp);
             });
+        });
+    }
+
+    public packScriptCmd(scriptType: ScriptTypes): Disposable {
+        return commands.registerCommand(`trek.${scriptType}.pack`, async () => {
+            if (this.matchScriptProject(scriptType)) {
+                await this.pack(PackTypes.SCRIPT, scriptType);
+            }
         });
     }
 

@@ -38,14 +38,12 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "languages": [
-            {
-                "id": "yaml",
-                "extensions": [
-                    ".para"
-                ]
-            }
-        ],
+        "languages": [{
+            "id": "yaml",
+            "extensions": [
+                ".para"
+            ]
+        }],
         "configuration": {
             "type": "object",
             "title": "Pentium Trek",
@@ -57,8 +55,7 @@
                 }
             }
         },
-        "commands": [
-            {
+        "commands": [{
                 "command": "trek.show.version",
                 "title": "Trek: Version"
             },
@@ -72,15 +69,15 @@
             },
             {
                 "command": "trek.blcks.create",
-                "title": "Trek: Create Blcks"
+                "title": "Trek Blcks: Create Blcks"
             },
             {
                 "command": "trek.ansible.create",
-                "title": "Trek: Create Ansible"
+                "title": "Trek Ansible: Create Ansible"
             },
             {
                 "command": "trek.shell.create",
-                "title": "Trek: Create Shell"
+                "title": "Trek Shell: Create Shell"
             },
             {
                 "command": "trek.show.installed",
@@ -120,7 +117,7 @@
             },
             {
                 "command": "trek.blcks.run",
-                "title": "Trek: Run Blcks"
+                "title": "Trek Blcks: Run"
             },
             {
                 "command": "trek.show.logs",
@@ -131,16 +128,56 @@
                 "title": "Trek: Pack"
             },
             {
+                "command": "trek.blcks.pack",
+                "title": "Trek Blcks: Pack"
+            },
+            {
+                "command": "trek.shell.pack",
+                "title": "Trek Shell: Pack"
+            },
+            {
+                "command": "trek.ansible..pack",
+                "title": "Trek Ansible: Pack"
+            },
+            {
                 "command": "trek.build",
                 "title": "Trek: Build and Push"
+            },
+            {
+                "command": "trek.blcks.build",
+                "title": "Trek Blcks: Build and Push"
             },
             {
                 "command": "trek.deploy",
                 "title": "Trek: Deploy Packed Packages to Marvin"
             },
             {
+                "command": "trek.blcks.deploy",
+                "title": "Trek Blcks: Deploy Packed Packages to Marvin"
+            },
+            {
+                "command": "trek.ansible.deploy",
+                "title": "Trek Ansible: Deploy Packed Packages to Marvin"
+            },
+            {
+                "command": "trek.shell.deploy",
+                "title": "Trek Shell: Deploy Packed Packages to Marvin"
+            },
+            {
                 "command": "trek.deploy.auto",
                 "title": "Trek: Deploy to Marvin"
+            },
+            {
+                "command": "trek.blcks.deploy.auto",
+                "title": "Trek Blcks: Deploy to Marvin"
+            },
+            {
+                "command": "trek.shell.deploy.auto",
+                "title": "Trek Shell: Deploy to Marvin"
+            },
+            {
+                "command": "trek.ansible.deploy.auto",
+                "title": "Trek Ansible: Deploy to Marvin"
             },
             {
                 "command": "trek.view.wf",
@@ -149,14 +186,11 @@
             }
         ],
         "menus": {
-            "commandPalette": [
-                {
-                    "command": "trek.view.wf",
-                    "when": "false"
-                }
-            ],
-            "editor/title": [
-                {
+            "commandPalette": [{
+                "command": "trek.view.wf",
+                "when": "false"
+            }],
+            "editor/title": [{
                     "command": "trek.down",
                     "when": "resourceLangId == yaml && isWfYaml",
                     "group": "navigation@-1"
@@ -167,21 +201,17 @@
                     "group": "navigation@-2"
                 }
             ],
-            "editor/context": [
-                {
-                    "command": "trek.view.wf",
-                    "when": "resourceLangId == yaml",
-                    "group": "6_view",
-                    "alt": "trek.view.wf"
-                }
-            ]
+            "editor/context": [{
+                "command": "trek.view.wf",
+                "when": "resourceLangId == yaml",
+                "group": "6_view",
+                "alt": "trek.view.wf"
+            }]
         },
-        "snippets": [
-            {
-                "language": "yaml",
-                "path": "./snippets/snippets.json"
-            }
-        ]
+        "snippets": [{
+            "language": "yaml",
+            "path": "./snippets/snippets.json"
+        }]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

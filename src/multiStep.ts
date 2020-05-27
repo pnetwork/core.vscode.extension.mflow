@@ -14,6 +14,7 @@ export enum MultiStepTypes {
     CREATE_SCRIPT_IN_WF,
     CREATE_SCRIPT,
     DEPLOY,
+    DEPLOY_SCRIPT,
     LOGIN,
     RUNBLCKS
 }
@@ -298,6 +299,14 @@ export async function multiStepInput(
             result.title = title;
             result.isSuc = true;
             window.showInformationMessage(`Deploy Trek Project to Marvin`);
+        } else {
+            result.isSuc = false;
+        }
+    } else if (multiStepType === MultiStepTypes.DEPLOY_SCRIPT) {
+        await MultiStepInput.run(input => askOverwrite(input, result));
+        if (result.yn) {
+            result.isSuc = true;
+            window.showInformationMessage(`Deploy ${scriptType} Project to Marvin`);
         } else {
             result.isSuc = false;
         }

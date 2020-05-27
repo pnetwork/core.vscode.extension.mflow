@@ -30,6 +30,7 @@ export function activate(c: vscode.ExtensionContext): void {
         trekCmd.downCmd(),
         trekCmd.logsCmd(),
         trekCmd.buildCmd(),
+        trekCmd.buildBlcksCmd(),
         trekCmd.packCmd(),
         trekCmd.deployCmd(false),
         trekCmd.deployCmd(true),
@@ -43,6 +44,12 @@ export function activate(c: vscode.ExtensionContext): void {
     for (const i of scriptTypeValues) {
         const scriptCmd = trekCmd.createScriptCmd(i);
         c.subscriptions.push(scriptCmd);
+        const packCmd = trekCmd.packScriptCmd(i);
+        c.subscriptions.push(packCmd);
+        const deployCmd = trekCmd.deployScriptCmd(true, i);
+        c.subscriptions.push(deployCmd);
+        const deployAutoCmd = trekCmd.deployScriptCmd(false, i);
+        c.subscriptions.push(deployAutoCmd);
     }
 
     c.subscriptions.concat(cmdList);
