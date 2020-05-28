@@ -1,3 +1,5 @@
+只有 Blcks 腳本需要 build and push。
+
   Step 1. 選取 build and push 的目標為：
 
       - :The Trek Project: Build and push 包含 workflow template 和使用到的腳本 (除了安裝的腳本以外)。

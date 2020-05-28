@@ -1,7 +1,7 @@
 import vscode from "vscode";
-import { ScriptTypes } from "./basicCliComands";
 import { TrekCommand } from "./commands";
 import { getTrekPath, getRootPath } from "./path";
+import { isWorkflowProject, ScriptTypes } from "./util";
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
 let trekCmd: TrekCommand;
@@ -26,9 +26,11 @@ export function activate(c: vscode.ExtensionContext): void {
         trekCmd.remoteScriptCmd(),
         trekCmd.upCmd(),
         trekCmd.runCmd(),
+        trekCmd.runBlcksCmd(),
         trekCmd.downCmd(),
         trekCmd.logsCmd(),
         trekCmd.buildCmd(),
+        trekCmd.buildBlcksCmd(),
         trekCmd.packCmd(),
         trekCmd.deployCmd(false),
         trekCmd.deployCmd(true),
@@ -42,6 +44,12 @@ export function activate(c: vscode.ExtensionContext): void {
     for (const i of scriptTypeValues) {
         const scriptCmd = trekCmd.createScriptCmd(i);
         c.subscriptions.push(scriptCmd);
+        const packCmd = trekCmd.packScriptCmd(i);
+        c.subscriptions.push(packCmd);
+        const deployCmd = trekCmd.deployScriptCmd(true, i);
+        c.subscriptions.push(deployCmd);
+        const deployAutoCmd = trekCmd.deployScriptCmd(false, i);
+        c.subscriptions.push(deployAutoCmd);
     }
 
     c.subscriptions.concat(cmdList);
@@ -49,6 +57,7 @@ export function activate(c: vscode.ExtensionContext): void {
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => trekCmd.reloadWfYamlbyWfUri(document));
     vscode.workspace.onDidChangeConfiguration(() => (trekCmd.trekPath = getTrekPath()));
     vscode.window.onDidChangeActiveTextEditor(e => {
+        if (!isWorkflowProject(rootPath)) return;
         if (trekCmd.wfUri !== e?.document?.fileName) vscode.commands.executeCommand("setContext", "isWfYaml", false);
         else vscode.commands.executeCommand("setContext", "isWfYaml", true);
     });

@@ -2,7 +2,7 @@
     "name": "trek-extension",
     "displayName": "Pentium Trek",
     "description": "",
-    "version": "1.0.1-beta",
+    "version": "1.0.2-beta",
     "publisher": "pentium",
     "engines": {
         "vscode": "^1.41.0"
@@ -24,6 +24,7 @@
         "onCommand:trek.remote.scripts",
         "onCommand:trek.up",
         "onCommand:trek.run",
+        "onCommand:trek.blcks.run",
         "onCommand:trek.down",
         "onCommand:trek.logs",
         "onCommand:trek.build",
@@ -68,15 +69,15 @@
             },
             {
                 "command": "trek.blcks.create",
-                "title": "Trek: Create Blcks"
+                "title": "Trek Blcks: Create Blcks"
             },
             {
                 "command": "trek.ansible.create",
-                "title": "Trek: Create Ansible"
+                "title": "Trek Ansible: Create Ansible"
             },
             {
                 "command": "trek.shell.create",
-                "title": "Trek: Create Shell"
+                "title": "Trek Shell: Create Shell"
             },
             {
                 "command": "trek.show.installed",
@@ -115,6 +116,10 @@
                 }
             },
             {
+                "command": "trek.blcks.run",
+                "title": "Trek Blcks: Run"
+            },
+            {
                 "command": "trek.show.logs",
                 "title": "Trek: Logs"
             },
@@ -123,16 +128,56 @@
                 "title": "Trek: Pack"
             },
             {
+                "command": "trek.blcks.pack",
+                "title": "Trek Blcks: Pack"
+            },
+            {
+                "command": "trek.shell.pack",
+                "title": "Trek Shell: Pack"
+            },
+            {
+                "command": "trek.ansible..pack",
+                "title": "Trek Ansible: Pack"
+            },
+            {
                 "command": "trek.build",
                 "title": "Trek: Build and Push"
+            },
+            {
+                "command": "trek.blcks.build",
+                "title": "Trek Blcks: Build and Push"
             },
             {
                 "command": "trek.deploy",
                 "title": "Trek: Deploy Packed Packages to Marvin"
             },
             {
+                "command": "trek.blcks.deploy",
+                "title": "Trek Blcks: Deploy Packed Packages to Marvin"
+            },
+            {
+                "command": "trek.ansible.deploy",
+                "title": "Trek Ansible: Deploy Packed Packages to Marvin"
+            },
+            {
+                "command": "trek.shell.deploy",
+                "title": "Trek Shell: Deploy Packed Packages to Marvin"
+            },
+            {
                 "command": "trek.deploy.auto",
                 "title": "Trek: Deploy to Marvin"
+            },
+            {
+                "command": "trek.blcks.deploy.auto",
+                "title": "Trek Blcks: Deploy to Marvin"
+            },
+            {
+                "command": "trek.shell.deploy.auto",
+                "title": "Trek Shell: Deploy to Marvin"
+            },
+            {
+                "command": "trek.ansible.deploy.auto",
+                "title": "Trek Ansible: Deploy to Marvin"
             },
             {
                 "command": "trek.view.wf",
@@ -182,6 +227,7 @@
         "@types/js-yaml": "^3.12.2",
         "@types/mocha": "^7.0.1",
         "@types/node": "^12.11.7",
+        "@types/sinon": "^9.0.4",
         "@types/vscode": "^1.41.0",
         "@typescript-eslint/eslint-plugin": "^2.18.0",
         "@typescript-eslint/parser": "^2.18.0",
@@ -195,8 +241,9 @@
         "eslint-plugin-standard": "^4.0.1",
         "glob": "^7.1.6",
         "graphviz": "0.0.9",
-        "mocha": "^7.0.1",
+        "mocha": "^7.2.0",
         "prettier": "^1.19.1",
+        "sinon": "^9.0.2",
         "typescript": "^3.7.5",
         "vscode-test": "^1.3.0"
     }

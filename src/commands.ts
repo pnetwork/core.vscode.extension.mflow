@@ -13,27 +13,25 @@ import {
 import path from "path";
 import { createInputBox, createQuickPick, execCommandCallback } from "./basicInput";
 import { multiStepInput, MultiStepTypes } from "./multiStep";
-import { ScriptTypes, PackTypes, CliCommands } from "./basicCliComands";
+import { PackTypes, CliCommands } from "./basicCliComands";
 import { searchCompletionItems } from "./autoComplete";
 import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
 import child from "child_process";
 import fs from "fs";
-import { getTextbyRegex, getScriptbyRegex } from "./util";
+import { getTextbyRegex, getScriptbyRegex, isWorkflowProject, ScriptTypes } from "./util";
 
 /**
  * All Commands
  */
 export class TrekCommand extends CliCommands {
-    readonly scriptNameReg = new RegExp("^[a-z0-9]+$");
-
     public showVersionCmd(): Disposable {
         return commands.registerCommand("trek.show.version", () => this.getVersion());
     }
 
     public loginCmd(): Disposable {
         return commands.registerCommand("trek.login", async () => {
-            const result = await multiStepInput("Login to Marvin", MultiStepTypes.LOGIN);
+            const result = await multiStepInput("Login to Marvin", MultiStepTypes.LOGIN, this);
             if (result && result.isSuc) {
                 await this.login(result.name, result.password, result.uri);
             }
@@ -42,7 +40,7 @@ export class TrekCommand extends CliCommands {
 
     public createProjectCmd(): Disposable {
         return commands.registerCommand("trek.create.project", async () => {
-            const result = await multiStepInput("Create Trek project", MultiStepTypes.CREATE_PROJECT);
+            const result = await multiStepInput("Create Trek project", MultiStepTypes.CREATE_PROJECT, this);
             if (result && result.isSuc) {
                 await this.createProject(result.name, result.uri, result.yn.toUpperCase() === "Y");
             }
@@ -51,13 +49,17 @@ export class TrekCommand extends CliCommands {
 
     public createScriptCmd(scriptType: ScriptTypes): Disposable {
         return commands.registerCommand(`trek.${scriptType}.create`, async () => {
-            const name = await createInputBox(`Please enter ${scriptType} name: `, undefined, text => {
-                if (!this.scriptNameReg.test(text)) {
-                    return "Script name should be number(0-9) or lowercase letter(a-z).";
-                }
-            });
-            if (!name) return;
-            await this.createScript(scriptType, name);
+            const isWf = isWorkflowProject(this.rootPath);
+            let result: any;
+            const title = `Create ${scriptType} project`;
+            if (isWf) {
+                result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT_IN_WF, this, scriptType);
+            } else {
+                result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT, this, scriptType);
+            }
+            if (result && result.isSuc) {
+                await this.createScript(scriptType, result.name, result.uri, result.yn.toUpperCase() === "Y", isWf);
+            }
         });
     }
 
@@ -104,6 +106,18 @@ export class TrekCommand extends CliCommands {
         return commands.registerCommand("trek.run", () => this.run());
     }
 
+    public runBlcksCmd(): Disposable {
+        return commands.registerCommand("trek.blcks.run", async () => {
+            if (!this.verifyRootPath()) return;
+            if (this.matchScriptProject(ScriptTypes.BLCKS)) {
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY_SCRIPT, this);
+                if (result && result.isSuc) {
+                    this.runBlcks();
+                }
+            }
+        });
+    }
+
     public downCmd(): Disposable {
         return commands.registerCommand("trek.down", () => this.down());
     }
@@ -124,8 +138,18 @@ export class TrekCommand extends CliCommands {
             await commands.executeCommand("workbench.action.files.save");
             await createQuickPick(items, async selection => {
                 if (!selection) return;
-                await this.buildPush(selection);
+                const tp = PackTypes[selection.label as keyof typeof PackTypes];
+                await this.buildPush(tp);
             });
+        });
+    }
+
+    public buildBlcksCmd(): Disposable {
+        return commands.registerCommand(`trek.blcks.build`, async () => {
+            const scriptType = ScriptTypes.BLCKS;
+            if (this.matchScriptProject(scriptType)) {
+                await this.buildPush(PackTypes.SCRIPT, scriptType);
+            }
         });
     }
 
@@ -139,14 +163,36 @@ export class TrekCommand extends CliCommands {
         });
     }
 
+    public deployScriptCmd(isAuto: boolean, scriptType: ScriptTypes): Disposable {
+        const cmd = isAuto ? ".auto" : "";
+        return commands.registerCommand(`trek.${scriptType}.deploy` + cmd, async () => {
+            if (!this.verifyRootPath()) return;
+            if (this.matchScriptProject(scriptType)) {
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY_SCRIPT, this);
+                if (result && result.isSuc) {
+                    await this.deploy(isAuto, PackTypes.SCRIPT, result.yn.toUpperCase() === "Y", scriptType);
+                }
+            }
+        });
+    }
+
     public packCmd(): Disposable {
         return commands.registerCommand("trek.pack", async () => {
             const items = Object.values(PackTypes).map(label => ({ label }));
             await commands.executeCommand("workbench.action.files.save");
             await createQuickPick(items, async selection => {
                 if (!selection) return;
-                await this.pack(selection);
+                const tp = PackTypes[selection.label as keyof typeof PackTypes];
+                await this.pack(tp);
             });
+        });
+    }
+
+    public packScriptCmd(scriptType: ScriptTypes): Disposable {
+        return commands.registerCommand(`trek.${scriptType}.pack`, async () => {
+            if (this.matchScriptProject(scriptType)) {
+                await this.pack(PackTypes.SCRIPT, scriptType);
+            }
         });
     }
 
@@ -163,6 +209,7 @@ export class TrekCommand extends CliCommands {
     }
 
     public reloadWfYamlbyWfUri(document: TextDocument): Record<string, any> | undefined {
+        if (!isWorkflowProject(this.rootPath)) return;
         const lang = document.languageId;
         if (!(this.rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
         if (lang === "json") {
@@ -187,7 +234,7 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideCompletionItems: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document)) return;
+                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
                     await commands.executeCommand("workbench.action.files.save");
                     return searchCompletionItems(
                         this.rootPath,
@@ -208,7 +255,7 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideDefinition: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document)) return;
+                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
                     await commands.executeCommand("workbench.action.files.save");
                     const script = getScriptbyRegex(this.wfScript, document, position, /id:\s+'?()'?/);
                     if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
@@ -316,7 +363,7 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideHover: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document)) return;
+                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
                     if (!this.wfYaml?.graph?.nodes) return;
                     await commands.executeCommand("workbench.action.files.save");
                     let tooltip = this.nodeScriptTooltip(document, position);
