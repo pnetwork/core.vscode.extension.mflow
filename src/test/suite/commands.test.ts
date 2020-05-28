@@ -6,6 +6,7 @@ import yaml from "js-yaml";
 import os from "os";
 import path from "path";
 import fs from "fs";
+import sinon from "sinon";
 
 function filterLabels(result: vscode.CompletionItem[], mustHaveOptions: string[]): string[] {
     const options = result.map(({ label }) => label);
@@ -21,6 +22,10 @@ suite("trek: Auto Complete Test", function() {
         ouputChannel = vscode.window.createOutputChannel("Trek Ouput");
         done();
     });
+
+    const eventYamlPath = path.join(__dirname, `${mockBasePath}/event.yml`);
+    const util = require("../../util");
+    sinon.stub(util, "getConfigProperty").returns(eventYamlPath.replace(os.homedir(), ""));
 
     test("script auto complete check", async function() {
         const srcPath = path.join(__dirname, `${mockBasePath}/graph.yml`);
@@ -61,12 +66,8 @@ suite("trek: Auto Complete Test", function() {
     });
     test("event yaml auto complete check", async function() {
         const srcPath = path.join(__dirname, `${mockBasePath}/graph.yml`);
-        const eventYamlPath = path.join(__dirname, `${mockBasePath}/event.yml`);
         const wfYaml = yaml.safeLoad(fs.readFileSync(srcPath, "utf8"));
         const autoComplete = new EventAutoComplete(os.homedir(), wfYaml, ouputChannel);
-
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        autoComplete.config.input_event_path = eventYamlPath.replace(os.homedir(), "");
         let result = await autoComplete.getCompletionItems("0", []);
         assert.equal(result.length, 4);
 
@@ -96,12 +97,9 @@ suite("trek: Auto Complete Test", function() {
 
     test("event json auto complete check", async function() {
         const srcPath = path.join(__dirname, `${mockBasePath}/graph.yml`);
-        const eventYamlPath = path.join(__dirname, `${mockBasePath}/event.json`);
         const wfYaml = yaml.safeLoad(fs.readFileSync(srcPath, "utf8"));
         const autoComplete = new EventAutoComplete(os.homedir(), wfYaml, ouputChannel);
 
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        autoComplete.config.input_event_path = eventYamlPath.replace(os.homedir(), "");
         let result = await autoComplete.getCompletionItems("0", []);
         assert.equal(result.length, 4);
 

@@ -1,10 +1,12 @@
-import { window, Uri, OutputChannel, commands, QuickPickItem, TextDocument } from "vscode";
+import { window, Uri, OutputChannel, commands, TextDocument } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
 import fs from "fs";
+import glob from "glob";
 import { activeTrekTerminal, createQuickPick, execCommandCallback } from "./basicInput";
 import { getWfUri, getWfYaml, getTrekPath } from "./path";
+import { ScriptTypes, isWorkflowProject, isAnsibleProject, isBlcksProject, isShellProject } from "./util";
 
 /**
  * Package source type.
@@ -13,15 +15,6 @@ export enum PackTypes {
     ALL = "The Trek Project",
     SCRIPT = "Only Script",
     WORKFLOW = "Only Workflow"
-}
-
-/**
- * Script type.
- */
-export enum ScriptTypes {
-    BLCKS = "blcks",
-    ANSIBLE = "ansible",
-    SHELL = "shell"
 }
 
 /**
@@ -50,6 +43,29 @@ export class CliCommands {
             this.wfScript = yaml.safeLoad(stdout.toString());
         });
         child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: rootPath }, openFile);
+    }
+
+    /**
+     * The project is match script type or not
+     * @param scriptType: the script project type
+     */
+    public matchScriptProject(scriptType: ScriptTypes): boolean {
+        let isMatch: boolean;
+        switch (scriptType) {
+            case ScriptTypes.ANSIBLE:
+                isMatch = isAnsibleProject(this.rootPath);
+                break;
+            case ScriptTypes.SHELL:
+                isMatch = isShellProject(this.rootPath);
+                break;
+            case ScriptTypes.BLCKS:
+                isMatch = isBlcksProject(this.rootPath);
+                break;
+        }
+        if (!isMatch) {
+            window.showErrorMessage(`Not ${scriptType} project: ${this.rootPath}`);
+        }
+        return isMatch;
     }
 
     /**
@@ -95,7 +111,7 @@ export class CliCommands {
      * "scriptSchemaPath": "User/xxx/blcks.python.wf.callservice/callservice.para"
      * }]
      */
-    private getScriptsFromWfTemplate(): any[] {
+    private showScripts(): any[] {
         const buffer = child.execFileSync(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath });
         let result: any;
         try {
@@ -112,7 +128,7 @@ export class CliCommands {
     public getScriptQuickPickItems(): any[] {
         const items: any[] = [];
         try {
-            const result = this.getScriptsFromWfTemplate();
+            const result = this.showScripts();
             if (result) {
                 const installScriptPath = path.join(this.rootPath, this.installScriptFolder);
                 result.forEach(i => {
@@ -122,6 +138,42 @@ export class CliCommands {
                 });
             }
         } catch (e) {
+            this.output.appendLine(e);
+            window.showErrorMessage("Please check workflow template is in the right format!");
+        }
+        return items;
+    }
+
+    /**
+     * Get blcks scripts in workspace/src folder
+     */
+    public getBlcksQuickPickItems(): any[] {
+        const items: any[] = [];
+        try {
+            const result = this.showScripts();
+            if (result) {
+                const installScriptPath = path.join(this.rootPath, this.installScriptFolder);
+                result.forEach(i => {
+                    if (!i.scriptPath.startsWith(installScriptPath) && i.scriptType === "blcks") {
+                        items.push({ label: i.scriptId, detail: i.scriptPath, description: i.scriptType });
+                    }
+                });
+
+                const blcksSrcPath = path.join(this.rootPath, "src", "blcks");
+
+                const files = glob.sync("**/*.para", { cwd: blcksSrcPath });
+
+                files.forEach(file => {
+                    const paraPath = path.join(blcksSrcPath, file);
+                    const scriptPath = path.dirname(paraPath);
+                    if (items.findIndex(i => i.detail === scriptPath) === -1) {
+                        const s = getWfYaml(paraPath);
+                        items.push({ label: String(s.id), detail: scriptPath, description: "blck" });
+                    }
+                });
+            }
+        } catch (e) {
+            this.output.appendLine(e);
             window.showErrorMessage("Please check workflow template is in the right format!");
         }
         return items;
@@ -165,6 +217,40 @@ export class CliCommands {
     }
 
     /**
+     * Create script project under workspace/src.
+     * @param scriptType: might be blcks/ansible/shell.
+     * @param name: the script name.
+     * @param uri: where the project created.
+     * @param isOpenNewWorkspace: open script project on the new workspace windows.
+     */
+    public async createScript(
+        scriptType: ScriptTypes,
+        name: string,
+        uri: Uri,
+        isOpenNewWorkspace: boolean,
+        isWf: boolean
+    ): Promise<void> {
+        this.output.appendLine(`Create ${scriptType} project ${name} in ${uri.fsPath}.`);
+
+        const openFile = execCommandCallback(() => {
+            let projectPath = uri.fsPath;
+            if (isWorkflowProject(this.rootPath)) {
+                projectPath = path.join(projectPath, "src", scriptType, name);
+            } else {
+                projectPath = path.join(projectPath, name);
+            }
+            if (isOpenNewWorkspace) {
+                const workspaceUri: Uri = Uri.parse(projectPath);
+                commands.executeCommand("vscode.openFolder", workspaceUri, isWf);
+            } else {
+                const paraFile = Uri.parse(path.join(projectPath, `${name}.para`));
+                commands.executeCommand("vscode.open", paraFile);
+            }
+        }, this.output);
+        child.execFile(`${this.trekPath}`, [`create${scriptType}`, name, "-y"], { cwd: uri.fsPath }, openFile);
+    }
+
+    /**
      * Login to marvin.
      * @param name: marin user name.
      * @param password: marin user password.
@@ -174,21 +260,6 @@ export class CliCommands {
         if (!this.verifyRootPath()) return;
         this.output.appendLine(`Login marvin ${uri}.`);
         this.sendTerminal(`${this.trekPath} loginvs -u ${name} -p ${password} -m ${uri.toString()}`);
-    }
-
-    /**
-     * Create script project under workspace/src.
-     * @param scriptType: might be blcks/ansible/shell.
-     * @param name: the script name.
-     */
-    public async createScript(scriptType: ScriptTypes, name: string): Promise<void> {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Create ${scriptType} project ${name}.`);
-        const openFile = execCommandCallback(() => {
-            const paraFile = Uri.parse(path.join(this.rootPath, "src", scriptType, name, `${name}.para`));
-            commands.executeCommand("vscode.open", paraFile);
-        }, this.output);
-        child.execFile(`${this.trekPath}`, [`create${scriptType}`, `${name}`], { cwd: this.rootPath }, openFile);
     }
 
     /**
@@ -251,6 +322,16 @@ export class CliCommands {
     }
 
     /**
+     * Auto up containers and execute the blcks.
+     */
+    public runBlcks(blcksUri?: Uri): void {
+        if (!this.verifyRootPath()) return;
+        this.output.appendLine(`Run Blcks.`);
+        const p = blcksUri ? `-p ${blcksUri.fsPath}` : "";
+        this.sendTerminal(`${this.trekPath} runblcks ${p}`);
+    }
+
+    /**
      * Down the script, router, enviroment containers.
      */
     public down(): void {
@@ -272,12 +353,20 @@ export class CliCommands {
 
     /**
      * Build and push the images depend on packType.
-     * @param itemType: Select script type.
+     * @param packType: Select build/push type.
+     * @param scriptType: The script pack command.
      */
-    public async buildPush(itemType: QuickPickItem): Promise<void> {
+    public async buildPush(packType: PackTypes, scriptType?: ScriptTypes): Promise<void> {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Build and push ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
+        // when on the blcks/ansible/shell project pack
+        if (scriptType) {
+            this.output.appendLine(`Build and push ${scriptType}.`);
+            this.sendTerminal(`${this.trekPath} build${scriptType}`, `${this.trekPath} push${scriptType}`);
+            return;
+        }
+        // The wf project pack
+        this.output.appendLine(`Build and push ${packType}.`);
+        if (packType === PackTypes.SCRIPT) {
             const scripts = this.getScriptQuickPickItems();
             await createQuickPick(scripts, scriptSelect => {
                 if (!scriptSelect) return;
@@ -295,12 +384,20 @@ export class CliCommands {
 
     /**
      * Pack the project depend on packType.
-     * @param itemType: Select script type.
+     * @param packType: Select package type.
+     * @param scriptType: The script pack command.
      */
-    public async pack(itemType: QuickPickItem): Promise<void> {
+    public async pack(packType: PackTypes, scriptType?: ScriptTypes): Promise<void> {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Pack ${itemType.label}.`);
-        if (itemType.label === PackTypes.SCRIPT) {
+        // when on the blcks/ansible/shell project pack
+        if (scriptType) {
+            this.output.appendLine(`Pack ${scriptType}.`);
+            this.sendTerminal(`${this.trekPath} pack${scriptType}`);
+            return;
+        }
+        // The wf project pack
+        this.output.appendLine(`Pack ${packType}.`);
+        if (packType === PackTypes.SCRIPT) {
             const scripts = this.getScriptQuickPickItems();
             await createQuickPick(scripts, scriptSelect => {
                 if (!scriptSelect) return;
@@ -309,7 +406,7 @@ export class CliCommands {
                 this.sendTerminal(`${this.trekPath} pack${scriptType} -p ${scriptPath}`);
             });
         } else {
-            const packTartget = itemType.label === PackTypes.ALL ? "-a" : "";
+            const packTartget = packType === PackTypes.ALL ? "-a" : "";
             this.sendTerminal(`${this.trekPath} pack ${packTartget} --auto-pos`);
         }
     }
@@ -333,7 +430,9 @@ export class CliCommands {
         let option = isOverwrite ? "-y " : "";
         option = isAuto ? option + " --autobuildpush --autopack" : option;
         if (type === PackTypes.SCRIPT) {
-            option = `-p ${scriptUri?.fsPath} ` + option;
+            if (scriptUri && scriptUri.fsPath) {
+                option = `-p ${scriptUri?.fsPath} ` + option;
+            }
             this.sendTerminal(`${this.trekPath} deploy${scriptType} ${option} `);
         } else {
             option = type === PackTypes.ALL ? "-a " + option : option;
