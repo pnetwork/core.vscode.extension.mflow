@@ -29,7 +29,7 @@ def generate_docs(root_dir):
     for cmd in commands:
         if cmd.get("enablement"):
             continue
-        file_names.append(cmd["title"].replace("Trek: ", "").replace(" ", "_").lower())
+        file_names.append(cmd["title"].replace("Trek Blcks: ", "blcks-").replace("Trek Ansible: ", "ansible-").replace("Trek Shell: ", "shell-").replace("Trek: ", "").replace(" ", "_").lower())
         command_names.append(cmd["title"])
     command_names.sort()
     file_names.sort()
