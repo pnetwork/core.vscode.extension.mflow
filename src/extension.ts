@@ -1,6 +1,6 @@
 import vscode from "vscode";
 import { TrekCommand } from "./commands";
-import { getTrekPath, getRootPath } from "./path";
+import { CONFIG_NAME, getRootPath } from "./path";
 import { isWorkflowProject, ScriptTypes } from "./util";
 let ouputChannel: vscode.OutputChannel;
 let rootPath: string;
@@ -55,7 +55,10 @@ export function activate(c: vscode.ExtensionContext): void {
     c.subscriptions.concat(cmdList);
 
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => trekCmd.reloadWfYamlbyWfUri(document));
-    vscode.workspace.onDidChangeConfiguration(() => trekCmd.reloadTrekPath());
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (!event.affectsConfiguration(CONFIG_NAME)) return;
+        trekCmd.reloadTrekPath();
+    });
     vscode.window.onDidChangeActiveTextEditor(e => {
         if (!isWorkflowProject(rootPath)) return;
         if (trekCmd.wfUri !== e?.document?.fileName) vscode.commands.executeCommand("setContext", "isWfYaml", false);
