@@ -55,7 +55,7 @@ export function activate(c: vscode.ExtensionContext): void {
     c.subscriptions.concat(cmdList);
 
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => trekCmd.reloadWfYamlbyWfUri(document));
-    vscode.workspace.onDidChangeConfiguration(() => (trekCmd.trekPath = getTrekPath()));
+    vscode.workspace.onDidChangeConfiguration(() => trekCmd.reloadTrekPath());
     vscode.window.onDidChangeActiveTextEditor(e => {
         if (!isWorkflowProject(rootPath)) return;
         if (trekCmd.wfUri !== e?.document?.fileName) vscode.commands.executeCommand("setContext", "isWfYaml", false);

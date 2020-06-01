@@ -2,7 +2,6 @@ out
 node_modules
 .vscode-test/
 .vscode
-*.vsix
 docs/reference
 docs/_build
 docs/generator/__pycache__
