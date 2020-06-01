@@ -46,6 +46,18 @@ export class CliCommands {
     }
 
     /**
+     * When trek path in setting.json was changed then refresh wfScript and trekPath.
+     */
+    public reloadTrekPath(): void {
+        this.trekPath = getTrekPath();
+        const openFile = execCommandCallback(stdout => {
+            if (!stdout) return;
+            this.wfScript = yaml.safeLoad(stdout.toString());
+        });
+        child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
+    }
+
+    /**
      * The project is match script type or not
      * @param scriptType: the script project type
      */
