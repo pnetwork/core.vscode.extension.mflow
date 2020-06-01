@@ -4,6 +4,8 @@ import fs from "fs";
 import os from "os";
 import { workspace } from "vscode";
 
+export const CONFIG_NAME = "Trek.path";
+
 /**
  * Get workspace root path.
  */
@@ -78,7 +80,7 @@ export function getGlobalConfig(): any {
  * Get trek path from setting
  */
 export function getTrekPath(): string {
-    let trekPath = workspace.getConfiguration().get<string>("Trek.path");
+    let trekPath = workspace.getConfiguration().get<string>(CONFIG_NAME);
     if (!trekPath) {
         trekPath = "trek";
     }

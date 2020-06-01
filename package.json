@@ -2,7 +2,7 @@
     "name": "trek-extension",
     "displayName": "Pentium Trek",
     "description": "",
-    "version": "1.0.2-beta",
+    "version": "1.0.3-beta",
     "publisher": "pentium",
     "engines": {
         "vscode": "^1.41.0"
