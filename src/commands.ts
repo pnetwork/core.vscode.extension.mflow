@@ -110,7 +110,7 @@ export class TrekCommand extends CliCommands {
         return commands.registerCommand("trek.blcks.run", async () => {
             if (!this.verifyRootPath()) return;
             if (this.matchScriptProject(ScriptTypes.BLCKS)) {
-                const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY_SCRIPT, this);
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.RUNBLCKS, this);
                 if (result && result.isSuc) {
                     this.runBlcks();
                 }
@@ -199,8 +199,11 @@ export class TrekCommand extends CliCommands {
     public viewWf(): Disposable {
         return commands.registerTextEditorCommand("trek.view.wf", editor => {
             if (!this.verifyIsWftemplate(editor.document)) {
-                window.showErrorMessage("This file is not workflow file!");
-                return;
+                this.reloadTrekPath();
+                if (!this.verifyIsWftemplate(editor.document)) {
+                    window.showErrorMessage("This file is not workflow file!");
+                    return;
+                }
             }
             const title = this.wfUri ? path.basename(this.wfUri) : "graph.yml";
             const panel = window.createWebviewPanel("wfGraph", title, ViewColumn.One);
