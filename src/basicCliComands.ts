@@ -1,4 +1,4 @@
-import { window, Uri, OutputChannel, commands, TextDocument } from "vscode";
+import { window, Uri, OutputChannel, commands, TextDocument, Disposable } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
@@ -28,7 +28,7 @@ export class CliCommands {
     wfYaml: any;
     wfScript: any;
     trekPath: string | undefined;
-    isWfProject: boolean | undefined;
+    isWfProject: boolean;
 
     constructor(public rootPath: string, public output: OutputChannel) {
         this.trekPath = getTrekPath();
@@ -127,6 +127,15 @@ export class CliCommands {
      */
     public verifyWfData(): boolean {
         return this.wfYaml && this.wfScript;
+    }
+
+    public registerCommand(commandId: string, verifyWfProject: boolean, callback: (...args: any[]) => any): Disposable {
+        return commands.registerCommand(commandId, async () => {
+            if (verifyWfProject && !this.isWfProject) {
+                return;
+            }
+            callback();
+        });
     }
 
     /**
