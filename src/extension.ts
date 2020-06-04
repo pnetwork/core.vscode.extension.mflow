@@ -58,6 +58,7 @@ export function activate(c: vscode.ExtensionContext): void {
     vscode.workspace.onDidChangeConfiguration(event => {
         if (!event.affectsConfiguration(CONFIG_NAME)) return;
         trekCmd.reloadTrekPath();
+        trekCmd.reloadWfScript();
     });
     vscode.window.onDidChangeActiveTextEditor(e => {
         if (!isWorkflowProject(rootPath)) return;

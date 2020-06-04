@@ -46,15 +46,21 @@ export class CliCommands {
     }
 
     /**
-     * When trek path in setting.json was changed then refresh wfScript and trekPath.
+     * Reload wfScript by cli command - showscripts.
      */
-    public reloadTrekPath(): void {
-        this.trekPath = getTrekPath();
+    public reloadWfScript(): void {
         const openFile = execCommandCallback(stdout => {
             if (!stdout) return;
             this.wfScript = yaml.safeLoad(stdout.toString());
         });
         child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
+    }
+
+    /**
+     * When trek path in setting.json was changed then refresh trekPath.
+     */
+    public reloadTrekPath(): void {
+        this.trekPath = getTrekPath();
     }
 
     /**
@@ -108,10 +114,17 @@ export class CliCommands {
      * @param document: The trigger document.
      */
     public verifyIsWftemplate(document: TextDocument): boolean {
-        if (this.rootPath && this.wfUri && document.fileName === this.wfUri && this.wfYaml && this.wfScript) {
+        if (this.rootPath && this.wfUri && document.fileName === this.wfUri) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Verify wfYaml and wfScript has value.
+     */
+    public verifyWfData(): boolean {
+        return this.wfYaml && this.wfScript;
     }
 
     /**
