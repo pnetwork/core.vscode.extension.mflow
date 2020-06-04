@@ -19,7 +19,7 @@ import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
 import child from "child_process";
 import fs from "fs";
-import { getTextbyRegex, getScriptbyRegex, isWorkflowProject, ScriptTypes } from "./util";
+import { getTextbyRegex, getScriptbyRegex, ScriptTypes } from "./util";
 
 /**
  * All Commands
@@ -49,10 +49,9 @@ export class TrekCommand extends CliCommands {
 
     public createScriptCmd(scriptType: ScriptTypes): Disposable {
         return commands.registerCommand(`trek.${scriptType}.create`, async () => {
-            const isWf = isWorkflowProject(this.rootPath);
             let result: any;
             const title = `Create ${scriptType} project`;
-            if (isWf) {
+            if (this.isWfProject) {
                 result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT_IN_WF, this, scriptType);
             } else {
                 result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT, this, scriptType);
@@ -217,7 +216,7 @@ export class TrekCommand extends CliCommands {
     }
 
     public reloadWfYamlbyWfUri(document: TextDocument): Record<string, any> | undefined {
-        if (!isWorkflowProject(this.rootPath)) return;
+        if (!this.isWfProject) return;
         const lang = document.languageId;
         if (!(this.rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
         if (lang === "json") {
@@ -243,7 +242,7 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideCompletionItems: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
+                    if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
                     if (!this.verifyWfData()) {
                         this.reloadWfYamlbyWfUri(document);
@@ -268,7 +267,7 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideDefinition: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
+                    if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
                     if (!this.verifyWfData()) {
                         this.reloadWfYamlbyWfUri(document);
@@ -380,7 +379,7 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideHover: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
+                    if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
                     if (!this.verifyWfData()) {
                         this.reloadWfYamlbyWfUri(document);

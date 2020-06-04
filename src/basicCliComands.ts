@@ -28,11 +28,13 @@ export class CliCommands {
     wfYaml: any;
     wfScript: any;
     trekPath: string | undefined;
+    isWfProject: boolean | undefined;
 
     constructor(public rootPath: string, public output: OutputChannel) {
         this.trekPath = getTrekPath();
         this.rootPath = rootPath;
         this.output = output;
+        this.isWfProject = isWorkflowProject(this.rootPath);
 
         this.wfUri = getWfUri(rootPath);
         if (!this.wfUri) return;
@@ -259,7 +261,7 @@ export class CliCommands {
 
         const openFile = execCommandCallback(() => {
             let projectPath = uri.fsPath;
-            if (isWorkflowProject(this.rootPath)) {
+            if (this.isWfProject) {
                 projectPath = path.join(projectPath, "src", scriptType, name);
             } else {
                 projectPath = path.join(projectPath, name);
