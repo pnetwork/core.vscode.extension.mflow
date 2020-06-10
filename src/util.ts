@@ -10,7 +10,8 @@ import glob from "glob";
 export enum ScriptTypes {
     BLCKS = "blcks",
     ANSIBLE = "ansible",
-    SHELL = "shell"
+    SHELL = "shell",
+    TERRAFORM = "terraform"
 }
 
 export function getTextbyRegex(
@@ -77,6 +78,19 @@ function findPara(rootPath: string): string | undefined {
 }
 
 /**
+ * Check workspace is terraform project or not.
+ * @param projectPath: Project path.
+ */
+export function isTerraformProject(rootPath: string): boolean {
+    const trekPath = path.join(rootPath, ".trek/");
+    const file = glob.sync("*.tf", { cwd: rootPath });
+    if (fs.existsSync(trekPath) && file && file.length > 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Check workspace is ansible project or not.
  * @param projectPath: Project path.
  */
@@ -84,7 +98,7 @@ export function isAnsibleProject(rootPath: string): boolean {
     const trekPath = path.join(rootPath, ".trek/");
     const filename = findPara(rootPath);
     if (filename) {
-        const name = path.basename(filename);
+        const name = path.basename(filename, ".para");
         const openfaasFile = path.join(rootPath, `${name}.yml`);
         if (fs.existsSync(trekPath) && fs.existsSync(openfaasFile)) {
             return true;
@@ -101,7 +115,7 @@ export function isShellProject(rootPath: string): boolean {
     const trekPath = path.join(rootPath, ".trek/");
     const filename = findPara(rootPath);
     if (filename) {
-        const name = path.basename(filename);
+        const name = path.basename(filename, ".para");
         const openfaasFile = path.join(rootPath, `${name}.sh`);
         if (fs.existsSync(trekPath) && fs.existsSync(openfaasFile)) {
             return true;

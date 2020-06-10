@@ -26,7 +26,6 @@ export function activate(c: vscode.ExtensionContext): void {
         trekCmd.remoteScriptCmd(),
         trekCmd.upCmd(),
         trekCmd.runCmd(),
-        trekCmd.runBlcksCmd(),
         trekCmd.downCmd(),
         trekCmd.logsCmd(),
         trekCmd.buildCmd(),
@@ -46,6 +45,8 @@ export function activate(c: vscode.ExtensionContext): void {
         c.subscriptions.push(scriptCmd);
         const packCmd = trekCmd.packScriptCmd(i);
         c.subscriptions.push(packCmd);
+        const runCmd = trekCmd.runScriptCmd(i);
+        c.subscriptions.push(runCmd);
         const deployCmd = trekCmd.deployScriptCmd(true, i);
         c.subscriptions.push(deployCmd);
         const deployAutoCmd = trekCmd.deployScriptCmd(false, i);

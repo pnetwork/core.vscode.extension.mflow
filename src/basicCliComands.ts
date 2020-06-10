@@ -6,7 +6,15 @@ import fs from "fs";
 import glob from "glob";
 import { activeTrekTerminal, createQuickPick, execCommandCallback } from "./basicInput";
 import { getWfUri, getWfYaml, getTrekPath } from "./path";
-import { ScriptTypes, isWorkflowProject, isAnsibleProject, isBlcksProject, isShellProject } from "./util";
+import {
+    ScriptTypes,
+    isWorkflowProject,
+    isAnsibleProject,
+    isBlcksProject,
+    isShellProject,
+    isTerraformProject
+} from "./util";
+import { ServerResponse } from "http";
 
 /**
  * Package source type.
@@ -70,7 +78,7 @@ export class CliCommands {
      * @param scriptType: the script project type
      */
     public matchScriptProject(scriptType: ScriptTypes): boolean {
-        let isMatch: boolean;
+        let isMatch = false;
         switch (scriptType) {
             case ScriptTypes.ANSIBLE:
                 isMatch = isAnsibleProject(this.rootPath);
@@ -80,6 +88,9 @@ export class CliCommands {
                 break;
             case ScriptTypes.BLCKS:
                 isMatch = isBlcksProject(this.rootPath);
+                break;
+            case ScriptTypes.TERRAFORM:
+                isMatch = isTerraformProject(this.rootPath);
                 break;
         }
         if (!isMatch) {
@@ -350,21 +361,18 @@ export class CliCommands {
 
     /**
      * Auto up containers and execute the wf template graph.yml.
+     * @param scriptType: The script run command.
      */
-    public run(): void {
+    public run(scriptType?: ScriptTypes): void {
         if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Run.`);
-        this.sendTerminal(`${this.trekPath} run --auto`);
-    }
-
-    /**
-     * Auto up containers and execute the blcks.
-     */
-    public runBlcks(blcksUri?: Uri): void {
-        if (!this.verifyRootPath()) return;
-        this.output.appendLine(`Run Blcks.`);
-        const p = blcksUri ? `-p ${blcksUri.fsPath}` : "";
-        this.sendTerminal(`${this.trekPath} runblcks ${p}`);
+        // when on the blcks/ansible/shell project pack
+        if (scriptType) {
+            this.output.appendLine(`Run ${scriptType}.`);
+            this.sendTerminal(`${this.trekPath} run${scriptType}`);
+        } else {
+            this.output.appendLine(`Run.`);
+            this.sendTerminal(`${this.trekPath} run --auto`);
+        }
     }
 
     /**
@@ -464,8 +472,10 @@ export class CliCommands {
     ): Promise<void> {
         if (!this.verifyRootPath()) return;
         let option = isOverwrite ? "-y " : "";
-        option = isAuto ? option + " --autobuildpush --autopack" : option;
         if (type === PackTypes.SCRIPT) {
+            if (scriptType === ScriptTypes.BLCKS) {
+                option = isAuto ? option + " --autobuildpush --autopack" : option;
+            }
             if (scriptUri && scriptUri.fsPath) {
                 option = `-p ${scriptUri?.fsPath} ` + option;
             }
