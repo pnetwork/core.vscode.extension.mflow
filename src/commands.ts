@@ -221,7 +221,7 @@ export class TrekCommand extends CliCommands {
         });
     }
 
-    public checkDidSaveFile(document: TextDocument): boolean {
+    public verifyIsEntryJsonOrWfFile(document: TextDocument): boolean {
         const lang = document.languageId;
         if (lang === "json") {
             if (document.fileName !== path.join(this.rootPath, "manifest.json")) return false;
@@ -256,9 +256,7 @@ export class TrekCommand extends CliCommands {
                 provideCompletionItems: async (document, position) => {
                     if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
-                    if (!this.verifyWfData()) {
-                        if (!this.reloadWfYamlbyWfUri(document)) return;
-                    }
+                    if (!this.verifyWfData() && !this.reloadWfYamlbyWfUri(document)) return;
                     return searchCompletionItems(
                         this.rootPath,
                         this.wfYaml,
@@ -280,9 +278,7 @@ export class TrekCommand extends CliCommands {
                 provideDefinition: async (document, position) => {
                     if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
-                    if (!this.verifyWfData()) {
-                        if (!this.reloadWfYamlbyWfUri(document)) return;
-                    }
+                    if (!this.verifyWfData() && !this.reloadWfYamlbyWfUri(document)) return;
                     const script = getScriptbyRegex(this.wfScript, document, position, /id:\s+'?()'?/);
                     if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
                 }
@@ -391,9 +387,7 @@ export class TrekCommand extends CliCommands {
                 provideHover: async (document, position) => {
                     if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
-                    if (!this.verifyWfData()) {
-                        if (!this.reloadWfYamlbyWfUri(document)) return;
-                    }
+                    if (!this.verifyWfData() && !this.reloadWfYamlbyWfUri(document)) return;
                     if (!this.wfYaml?.graph?.nodes) return;
                     let tooltip = this.nodeScriptTooltip(document, position);
                     if (tooltip) {
