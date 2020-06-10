@@ -19,7 +19,7 @@ import { getWfUri, getWfYaml } from "./path";
 import yaml from "js-yaml";
 import child from "child_process";
 import fs from "fs";
-import { getTextbyRegex, getScriptbyRegex, isWorkflowProject, ScriptTypes } from "./util";
+import { getTextbyRegex, getScriptbyRegex, ScriptTypes } from "./util";
 
 /**
  * All Commands
@@ -49,16 +49,21 @@ export class TrekCommand extends CliCommands {
 
     public createScriptCmd(scriptType: ScriptTypes): Disposable {
         return commands.registerCommand(`trek.${scriptType}.create`, async () => {
-            const isWf = isWorkflowProject(this.rootPath);
             let result: any;
             const title = `Create ${scriptType} project`;
-            if (isWf) {
+            if (this.isWfProject) {
                 result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT_IN_WF, this, scriptType);
             } else {
                 result = await multiStepInput(title, MultiStepTypes.CREATE_SCRIPT, this, scriptType);
             }
             if (result && result.isSuc) {
-                await this.createScript(scriptType, result.name, result.uri, result.yn.toUpperCase() === "Y", isWf);
+                await this.createScript(
+                    scriptType,
+                    result.name,
+                    result.uri,
+                    result.yn.toUpperCase() === "Y",
+                    this.isWfProject
+                );
             }
         });
     }
@@ -110,7 +115,7 @@ export class TrekCommand extends CliCommands {
         return commands.registerCommand("trek.blcks.run", async () => {
             if (!this.verifyRootPath()) return;
             if (this.matchScriptProject(ScriptTypes.BLCKS)) {
-                const result = await multiStepInput("Deploy trek project", MultiStepTypes.DEPLOY_SCRIPT, this);
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.RUNBLCKS, this);
                 if (result && result.isSuc) {
                     this.runBlcks();
                 }
@@ -202,30 +207,45 @@ export class TrekCommand extends CliCommands {
                 window.showErrorMessage("This file is not workflow file!");
                 return;
             }
+            if (!this.verifyWfData()) {
+                if (!this.wfYaml) this.wfYaml = getWfYaml(this.wfUri || "");
+                if (!this.wfScript) this.reloadWfScript();
+                if (this.verifyWfData()) {
+                    window.showErrorMessage("Workflow file is invalid!");
+                    return;
+                }
+            }
             const title = this.wfUri ? path.basename(this.wfUri) : "graph.yml";
             const panel = window.createWebviewPanel("wfGraph", title, ViewColumn.One);
             panel.webview.html = this.buildWfGraphWebView(panel);
         });
     }
 
-    public reloadWfYamlbyWfUri(document: TextDocument): Record<string, any> | undefined {
-        if (!isWorkflowProject(this.rootPath)) return;
+    public verifyIsEntryJsonOrWfFile(document: TextDocument): boolean {
         const lang = document.languageId;
-        if (!(this.rootPath && document.uri.scheme === "file" && (lang === "json" || lang === "yaml"))) return;
         if (lang === "json") {
-            if (document.fileName !== path.join(this.rootPath, "manifest.json")) return;
+            if (document.fileName !== path.join(this.rootPath, "manifest.json")) return false;
+            return true;
+        }
+        return this.verifyIsWftemplate(document);
+    }
+
+    public reloadWfYamlbyWfUri(document: TextDocument): boolean {
+        const lang = document.languageId;
+        if (lang === "json") {
             const wfUriNew = getWfUri(this.rootPath);
             this.wfUri = wfUriNew || this.wfUri;
+            return true;
         } else {
-            if (!this.verifyIsWftemplate(document)) return;
-            const wfYamlNew = getWfYaml(this.wfUri || "");
+            if (!this.wfUri) this.wfUri = getWfUri(this.rootPath);
+            if (!this.wfUri) return false;
+            const wfYamlNew = getWfYaml(this.wfUri);
             this.wfYaml = wfYamlNew || this.wfYaml;
-            if (!wfYamlNew) return;
-            const openFile = execCommandCallback(stdout => {
-                if (!stdout) return;
-                this.wfScript = yaml.safeLoad(stdout.toString());
-            });
-            child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
+            if (!wfYamlNew) return false;
+            const stdout = child.execFileSync(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath });
+            if (!stdout) return false;
+            this.wfScript = yaml.safeLoad(stdout.toString());
+            return true;
         }
     }
 
@@ -234,8 +254,9 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideCompletionItems: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
+                    if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
+                    if (!this.verifyWfData() && !this.reloadWfYamlbyWfUri(document)) return;
                     return searchCompletionItems(
                         this.rootPath,
                         this.wfYaml,
@@ -255,8 +276,9 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideDefinition: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
+                    if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
+                    if (!this.verifyWfData() && !this.reloadWfYamlbyWfUri(document)) return;
                     const script = getScriptbyRegex(this.wfScript, document, position, /id:\s+'?()'?/);
                     if (script) return new Location(Uri.file(script[0].scriptSchemaPath), new Position(0, 0));
                 }
@@ -363,9 +385,10 @@ export class TrekCommand extends CliCommands {
             { scheme: "file", language: "yaml" },
             {
                 provideHover: async (document, position) => {
-                    if (!this.verifyIsWftemplate(document) || !isWorkflowProject(this.rootPath)) return;
-                    if (!this.wfYaml?.graph?.nodes) return;
+                    if (!this.verifyIsWftemplate(document) || !this.isWfProject) return;
                     await commands.executeCommand("workbench.action.files.save");
+                    if (!this.verifyWfData() && !this.reloadWfYamlbyWfUri(document)) return;
+                    if (!this.wfYaml?.graph?.nodes) return;
                     let tooltip = this.nodeScriptTooltip(document, position);
                     if (tooltip) {
                         return tooltip;
