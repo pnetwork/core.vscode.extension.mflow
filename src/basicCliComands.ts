@@ -1,4 +1,4 @@
-import { window, Uri, OutputChannel, commands, TextDocument } from "vscode";
+import { window, Uri, OutputChannel, commands, TextDocument, Disposable } from "vscode";
 import child from "child_process";
 import path from "path";
 import yaml from "js-yaml";
@@ -28,11 +28,13 @@ export class CliCommands {
     wfYaml: any;
     wfScript: any;
     trekPath: string | undefined;
+    isWfProject: boolean;
 
     constructor(public rootPath: string, public output: OutputChannel) {
         this.trekPath = getTrekPath();
         this.rootPath = rootPath;
         this.output = output;
+        this.isWfProject = isWorkflowProject(this.rootPath);
 
         this.wfUri = getWfUri(rootPath);
         if (!this.wfUri) return;
@@ -46,15 +48,21 @@ export class CliCommands {
     }
 
     /**
-     * When trek path in setting.json was changed then refresh wfScript and trekPath.
+     * Reload wfScript by cli command - showscripts.
      */
-    public reloadTrekPath(): void {
-        this.trekPath = getTrekPath();
+    public reloadWfScript(): void {
         const openFile = execCommandCallback(stdout => {
             if (!stdout) return;
             this.wfScript = yaml.safeLoad(stdout.toString());
         });
         child.execFile(`${this.trekPath}`, ["showscripts"], { cwd: this.rootPath }, openFile);
+    }
+
+    /**
+     * When trek path in setting.json was changed then refresh trekPath.
+     */
+    public reloadTrekPath(): void {
+        this.trekPath = getTrekPath();
     }
 
     /**
@@ -108,10 +116,26 @@ export class CliCommands {
      * @param document: The trigger document.
      */
     public verifyIsWftemplate(document: TextDocument): boolean {
-        if (this.rootPath && this.wfUri && document.fileName === this.wfUri && this.wfYaml && this.wfScript) {
+        if (this.rootPath && this.wfUri && document.fileName === this.wfUri) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Verify wfYaml and wfScript has value.
+     */
+    public verifyWfData(): boolean {
+        return this.wfYaml && this.wfScript;
+    }
+
+    public registerCommand(commandId: string, verifyWfProject: boolean, callback: (...args: any[]) => any): Disposable {
+        return commands.registerCommand(commandId, async () => {
+            if (verifyWfProject && !this.isWfProject) {
+                return;
+            }
+            callback();
+        });
     }
 
     /**
@@ -246,7 +270,7 @@ export class CliCommands {
 
         const openFile = execCommandCallback(() => {
             let projectPath = uri.fsPath;
-            if (isWorkflowProject(this.rootPath)) {
+            if (this.isWfProject) {
                 projectPath = path.join(projectPath, "src", scriptType, name);
             } else {
                 projectPath = path.join(projectPath, name);

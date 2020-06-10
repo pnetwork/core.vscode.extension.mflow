@@ -320,8 +320,8 @@ export async function multiStepInput(
             result.isSuc = false;
         }
     } else if (multiStepType === MultiStepTypes.RUNBLCKS) {
-        await MultiStepInput.run(input => selectBlcks(input, result));
-        if (result.uri && result.eventPath) {
+        await MultiStepInput.run(input => askInputEvent(input, result));
+        if (result.eventPath) {
             result.title = title;
             result.isSuc = true;
             window.showInformationMessage(`Run Blcks Project`);
