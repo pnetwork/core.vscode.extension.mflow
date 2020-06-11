@@ -22,6 +22,10 @@
         "usagePath": "create_shell/index.rst",
         "desc": "建立一個 shell 專案。  | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/ansible/{your_shell_project}``，若非 workflow 專案則會要選取腳本建立位置。"
     },
+    "Trek Terraform: Create Terraform": {
+        "usagePath": "create_terraform/index.rst",
+        "desc": "建立一個 terraform 專案。  | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/terraform/{your_terraform_project}``，若非 workflow 專案則會要選取腳本建立位置。"
+    },
     "Trek: Deploy Packed Packages to Marvin": {
         "usagePath": "deploy/index.rst",
         "desc": "發佈已 packed 的專案至 Marvin 平台。"
@@ -38,6 +42,10 @@
         "usagePath": "deploy_script/index.rst",
         "desc": "發佈已 packed 的 Shell 專案至 Marvin 平台。"
     },
+    "Trek Terraform: Deploy Packed Packages to Marvin": {
+        "usagePath": "deploy_script/index.rst",
+        "desc": "發佈已 packed 的 Terraform 專案至 Marvin 平台。"
+    },
     "Trek: Deploy to Marvin": {
         "usagePath": "deploy/index.rst",
         "desc": "Build, push, pack 和 deploy 專案至 Marvin 平台，將在 pack 時自動產生 workflow graph 的任務節點位置。"
@@ -48,11 +56,15 @@
     },
     "Trek Shell: Deploy to Marvin": {
         "usagePath": "deploy_script/index.rst",
-        "desc": "Build, push, pack 和 deploy Shell 專案至 Marvin 平台。"
+        "desc": "Pack 和 deploy Shell 專案至 Marvin 平台。"
     },
     "Trek Ansible: Deploy to Marvin": {
         "usagePath": "deploy_script/index.rst",
-        "desc": "Build, push, pack 和 deploy Ansible 專案至 Marvin 平台。"
+        "desc": "Pack 和 deploy Ansible 專案至 Marvin 平台。"
+    },
+    "Trek Terraform: Deploy to Marvin": {
+        "usagePath": "deploy_script/index.rst",
+        "desc": "Pack 和 deploy Terraform 專案至 Marvin 平台。"
     },
     "Trek: Init Env": {
         "desc": "啟動執行環境，找尋 workflow template 所使用到的腳本，分別以 docker containers 方式啟動。"
@@ -89,6 +101,9 @@
     "Trek Ansible: Pack": {
         "desc": "打包 Ansible 專案。  | 打包 Ansible 專案下的 .para 和 .yml 一起打包成 zip 並放置於 *{your_ansible_path}/bin** 資料夾中。"
     },
+    "Trek Terraform: Pack": {
+        "desc": "打包 Terraform 專案。  | 打包 Terraform 專案下的 .para 和 .tf 一起打包成 zip 並放置於 *{your_terraformpath}/bin** 資料夾中。"
+    },
     "Trek: Run": {
         "desc": "執行工作流程。  | 當環境尚未啟動時，會先啟動環境，再依 workflow template 描述流程執行。\n\n  .. note:: 啟動環境說明請參考 :doc:`./init_env`。"
     },
@@ -104,5 +119,14 @@
     },
     "Trek Blcks: Run": {
         "desc": "執行 Blcks 腳本。  | 啟動 Blcks container 環境，再執行腳本。會依照腳本內的設定檔 *{your_blcks_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
+    },
+    "Trek Ansible: Run": {
+        "desc": "執行 Ansible 腳本。  | 依照腳本內的設定檔 *{your_ansible_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
+    },
+    "Trek Shell: Run": {
+        "desc": "執行 Shell 腳本。  | 依照腳本內的設定檔 *{your_shell_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
+    },
+    "Trek Terraform: Run": {
+        "desc": "執行 Terraform 腳本。  | 依照腳本內的設定檔 *{your_terraform_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
     }
 }

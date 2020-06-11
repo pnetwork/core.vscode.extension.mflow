@@ -2,7 +2,7 @@
     "name": "trek-extension",
     "displayName": "Pentium Trek",
     "description": "",
-    "version": "1.0.3-beta1",
+    "version": "1.0.3-beta2",
     "publisher": "pentium",
     "engines": {
         "vscode": "^1.41.0"
@@ -80,6 +80,10 @@
                 "title": "Trek Shell: Create Shell"
             },
             {
+                "command": "trek.terraform.create",
+                "title": "Trek Terraform: Create Terraform"
+            },
+            {
                 "command": "trek.show.installed",
                 "title": "Trek: List Installed Scripts"
             },
@@ -120,6 +124,18 @@
                 "title": "Trek Blcks: Run"
             },
             {
+                "command": "trek.ansible.run",
+                "title": "Trek Ansible: Run"
+            },
+            {
+                "command": "trek.shell.run",
+                "title": "Trek Shell: Run"
+            },
+            {
+                "command": "trek.terraform.run",
+                "title": "Trek Terraform: Run"
+            },
+            {
                 "command": "trek.show.logs",
                 "title": "Trek: Logs"
             },
@@ -136,8 +152,12 @@
                 "title": "Trek Shell: Pack"
             },
             {
-                "command": "trek.ansible..pack",
+                "command": "trek.ansible.pack",
                 "title": "Trek Ansible: Pack"
+            },
+            {
+                "command": "trek.terraform.pack",
+                "title": "Trek Terraform: Pack"
             },
             {
                 "command": "trek.build",
@@ -164,6 +184,10 @@
                 "title": "Trek Shell: Deploy Packed Packages to Marvin"
             },
             {
+                "command": "trek.terraform.deploy",
+                "title": "Trek Terraform: Deploy Packed Packages to Marvin"
+            },
+            {
                 "command": "trek.deploy.auto",
                 "title": "Trek: Deploy to Marvin"
             },
@@ -178,6 +202,10 @@
             {
                 "command": "trek.ansible.deploy.auto",
                 "title": "Trek Ansible: Deploy to Marvin"
+            },
+            {
+                "command": "trek.terraform.deploy.auto",
+                "title": "Trek Terraform: Deploy to Marvin"
             },
             {
                 "command": "trek.view.wf",
