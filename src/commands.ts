@@ -111,13 +111,12 @@ export class TrekCommand extends CliCommands {
         return commands.registerCommand("trek.run", () => this.run());
     }
 
-    public runBlcksCmd(): Disposable {
-        return commands.registerCommand("trek.blcks.run", async () => {
-            if (!this.verifyRootPath()) return;
-            if (this.matchScriptProject(ScriptTypes.BLCKS)) {
-                const result = await multiStepInput("Deploy trek project", MultiStepTypes.RUNBLCKS, this);
+    public runScriptCmd(scriptType: ScriptTypes): Disposable {
+        return commands.registerCommand(`trek.${scriptType}.run`, async () => {
+            if (this.matchScriptProject(scriptType)) {
+                const result = await multiStepInput("Deploy trek project", MultiStepTypes.RUN_SCRIPT, this);
                 if (result && result.isSuc) {
-                    this.runBlcks();
+                    this.run(scriptType);
                 }
             }
         });

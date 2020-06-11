@@ -6,7 +6,7 @@
 
   Step 2. 是否在新視窗開啟 Ansible 專案 ?：
 
-      - :Open blcks project in new window: 填入 Y or N，大小寫不拘。若為 Y 表示要以此腳本為 workspce 開啟新視窗，N 則反之。
+      - :Open Ansible project in new window: 填入 Y or N，大小寫不拘。若為 Y 表示要以此腳本為 workspce 開啟新視窗，N 則反之。
 
 若在非 workflow 專案下執行命令時如下說明，執行完全直接以此腳本為 workspce 開啟：
   

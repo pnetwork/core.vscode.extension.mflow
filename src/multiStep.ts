@@ -16,7 +16,7 @@ export enum MultiStepTypes {
     DEPLOY,
     DEPLOY_SCRIPT,
     LOGIN,
-    RUNBLCKS
+    RUN_SCRIPT
 }
 
 /**
@@ -74,7 +74,7 @@ export async function multiStepInput(
             step: 2,
             totalSteps: 2,
             value: step.yn || "",
-            prompt: "Open blcks project in new window?",
+            prompt: `Open ${scriptType} project in new window?`,
             placeHolder: "Y/N",
             validate: text => (!verifyYesorNo(text) ? "Input value should be Y or N." : undefined)
         });
@@ -319,12 +319,12 @@ export async function multiStepInput(
         } else {
             result.isSuc = false;
         }
-    } else if (multiStepType === MultiStepTypes.RUNBLCKS) {
+    } else if (multiStepType === MultiStepTypes.RUN_SCRIPT) {
         await MultiStepInput.run(input => askInputEvent(input, result));
         if (result.eventPath) {
             result.title = title;
             result.isSuc = true;
-            window.showInformationMessage(`Run Blcks Project`);
+            window.showInformationMessage(`Run ${scriptType} Project`);
         } else {
             result.isSuc = false;
         }
