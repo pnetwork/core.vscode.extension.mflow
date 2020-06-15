@@ -483,7 +483,7 @@ export class CliCommands {
         } else {
             if (isAuto) {
                 if (type === PackTypes.WORKFLOW) option += " --autopack";
-                else option += "  --autobuildpush --autopack";
+                else option += " --autobuildpush --autopack";
             }
             option = type === PackTypes.ALL ? "-a " + option : option;
             this.sendTerminal(`${this.trekPath} deploy ${option}`);
