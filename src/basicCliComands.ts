@@ -481,6 +481,9 @@ export class CliCommands {
             }
             this.sendTerminal(`${this.trekPath} deploy${scriptType} ${option} `);
         } else {
+            if (type === PackTypes.WORKFLOW) {
+                option = isAuto ? option + " --autopack" : option;
+            } else option = isAuto ? option + " --autobuildpush --autopack" : option;
             option = type === PackTypes.ALL ? "-a " + option : option;
             this.sendTerminal(`${this.trekPath} deploy ${option}`);
         }
