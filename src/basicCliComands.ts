@@ -473,14 +473,18 @@ export class CliCommands {
         if (!this.verifyRootPath()) return;
         let option = isOverwrite ? "-y " : "";
         if (type === PackTypes.SCRIPT) {
-            if (scriptType === ScriptTypes.BLCKS) {
-                option = isAuto ? option + " --autobuildpush --autopack" : option;
+            if (isAuto && scriptType === ScriptTypes.BLCKS) {
+                option += " --autobuildpush --autopack";
             }
             if (scriptUri && scriptUri.fsPath) {
                 option = `-p ${scriptUri?.fsPath} ` + option;
             }
             this.sendTerminal(`${this.trekPath} deploy${scriptType} ${option} `);
         } else {
+            if (isAuto) {
+                if (type === PackTypes.WORKFLOW) option += " --autopack";
+                else option += " --autobuildpush --autopack";
+            }
             option = type === PackTypes.ALL ? "-a " + option : option;
             this.sendTerminal(`${this.trekPath} deploy ${option}`);
         }
