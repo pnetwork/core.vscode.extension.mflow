@@ -1,14 +1,13 @@
-
 *****************************************************************
-{{ command_name }}
+{% block title %}{{ command_name }}{% endblock %}
 *****************************************************************
 
 Purpose:
 
-  | {{ command_desc }}
+  | {% block desc %}{{ command_desc }}{% endblock %}
 
-{% if doc_string %}
+{% if self.usage() %}
 Usage:
 
-{{ doc_string }}
+{% block usage %}{% endblock %}
 {% endif %}

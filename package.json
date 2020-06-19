@@ -2,7 +2,7 @@
     "name": "trek-extension",
     "displayName": "Pentium Trek",
     "description": "",
-    "version": "1.0.3-beta3",
+    "version": "1.0.0-beta6",
     "publisher": "pentium",
     "engines": {
         "vscode": "^1.41.0"
@@ -57,51 +57,63 @@
         },
         "commands": [{
                 "command": "trek.show.version",
-                "title": "Trek: Version"
+                "title": "Trek: Version",
+                "description": "查看 Trek 版本。"
             },
             {
                 "command": "trek.login",
-                "title": "Trek: Login to Marvin"
+                "title": "Trek: Login to Marvin",
+                "description": "登入 Marvin 平台。"
             },
             {
                 "command": "trek.create.project",
-                "title": "Trek: Create Project"
+                "title": "Trek: Create Project",
+                "description": "建立 Trek 專案。"
             },
             {
                 "command": "trek.blcks.create",
-                "title": "Trek Blcks: Create Blcks"
+                "title": "Trek Blcks: Create Blcks",
+                "description": "建立 Blcks 專案。 | 當在 workflow 專案下執行時，建置位址會在 ``{your_trek_project_path}/src/ansible/{your_blcks_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.ansible.create",
-                "title": "Trek Ansible: Create Ansible"
+                "title": "Trek Ansible: Create Ansible",
+                "description": "建立 Ansible 專案。 | 當在 workflow 專案下執行時，建置位址會在 `{your_trek_project_path}/src/ansible/{your_ansible_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.shell.create",
-                "title": "Trek Shell: Create Shell"
+                "title": "Trek Shell: Create Shell",
+                "description": "建立一個 Shell 專案。 | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/ansible/{your_shell_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.terraform.create",
-                "title": "Trek Terraform: Create Terraform"
+                "title": "Trek Terraform: Create Terraform",
+                "description": "建立一個 Terraform 專案。 | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/terraform/{your_terraform_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.show.installed",
-                "title": "Trek: List Installed Scripts"
+                "title": "Trek: List Installed Scripts",
+                "description": "列出 Trek 專案已安裝腳本及版號。 | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
             },
             {
                 "command": "trek.remote.scripts",
-                "title": "Trek: List Remote Scripts"
+                "title": "Trek: List Remote Scripts",
+                "description": "列出遠端機器上的腳本及版號。 | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
             },
             {
                 "command": "trek.install.script",
-                "title": "Trek: Install Script"
+                "title": "Trek: Install Script",
+                "description": "從遠端下載腳本並安裝至 Trek 專案中。 | 可下載指定腳本、或將 *packages.json* 檔案中定義的腳本全部下載。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定"
             },
             {
                 "command": "trek.uninstall.script",
-                "title": "Trek: Uninstall Script"
+                "title": "Trek: Uninstall Script",
+                "description": "指定腳本，移除 Trek 專案中已安裝腳本。 | 將從 *{your_trek_project_path}/bin* 資料夾中移除該腳本。"
             },
             {
                 "command": "trek.up",
-                "title": "Trek: Init Env"
+                "title": "Trek: Init Env",
+                "description": "啟動執行環境，找尋 workflow template 所使用到的腳本，分別以 docker containers 方式啟動。"
             },
             {
                 "command": "trek.down",
@@ -121,91 +133,113 @@
             },
             {
                 "command": "trek.blcks.run",
-                "title": "Trek Blcks: Run"
+                "title": "Trek Blcks: Run",
+                "description": "執行 Blcks 腳本。 | 啟動 Blcks container 環境，再執行腳本。會依照腳本內的設定檔 *{your_blcks_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.ansible.run",
-                "title": "Trek Ansible: Run"
+                "title": "Trek Ansible: Run",
+                "description": "執行 Ansible 腳本。 | 依照腳本內的設定檔 *{your_ansible_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.shell.run",
-                "title": "Trek Shell: Run"
+                "title": "Trek Shell: Run",
+                "description": "執行 Shell 腳本。 | 依照腳本內的設定檔 *{your_shell_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.terraform.run",
-                "title": "Trek Terraform: Run"
+                "title": "Trek Terraform: Run",
+                "description": "執行 Terraform 腳本。  | 依照腳本內的設定檔 *{your_terraform_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.show.logs",
-                "title": "Trek: Logs"
+                "title": "Trek: Logs",
+                "description": "顯示執行日誌，支援查看全部日誌或是查看指定腳本 id 日誌。"
             },
             {
                 "command": "trek.pack",
-                "title": "Trek: Pack"
+                "title": "Trek: Pack",
+                "description": "打包 Trek 專案。 | 將產生 workflow template 任務節點位置，與 inline script 一起打包成 zip 並放置於 *{your_trek_project_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.blcks.pack",
-                "title": "Trek Blcks: Pack"
+                "title": "Trek Blcks: Pack",
+                "description": "打包 Blcks 專案。 | 打包 Blcks 專案下的 .para 和 openfaas.yml 一起打包成 zip 並放置於 *{your_blcks_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.shell.pack",
-                "title": "Trek Shell: Pack"
+                "title": "Trek Shell: Pack",
+                "description": "打包 Shell 專案。 | 打包 Shell 專案下的 .para 和 .sh 一起打包成 zip 並放置於 *{your_shell_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.ansible.pack",
-                "title": "Trek Ansible: Pack"
+                "title": "Trek Ansible: Pack",
+                "description": "打包 Ansible 專案。 | 打包 Ansible 專案下的 .para 和 .yml 一起打包成 zip 並放置於 *{your_ansible_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.terraform.pack",
-                "title": "Trek Terraform: Pack"
+                "title": "Trek Terraform: Pack",
+                "description": "打包 Terraform 專案。 | 打包 Terraform 專案下的 .para 和 .tf 一起打包成 zip 並放置於 *{your_terraformpath}/bin* 資料夾中。"
             },
             {
                 "command": "trek.build",
-                "title": "Trek: Build and Push"
+                "title": "Trek: Build and Push",
+                "description": "建置 Trek 專案 image 檔，依 openfaas.yaml 描述產生對應 docker image，並將其 push 至 docker hub。"
             },
             {
                 "command": "trek.blcks.build",
-                "title": "Trek Blcks: Build and Push"
+                "title": "Trek Blcks: Build and Push",
+                "description": "建置 Blcks 專案 image 檔，依 openfaas.yaml 描述產生對應 docker image，並將其 push 至 docker hub。"
             },
             {
                 "command": "trek.deploy",
-                "title": "Trek: Deploy Packed Packages to Marvin"
+                "title": "Trek: Deploy Packed Packages to Marvin",
+                "description": "於 Trek 專案下 (*{your_trek_project_path}/bin*) 找尋已 packed 的 zip 檔並發佈至 Marvin 平台。"
             },
             {
                 "command": "trek.blcks.deploy",
-                "title": "Trek Blcks: Deploy Packed Packages to Marvin"
+                "title": "Trek Blcks: Deploy Packed Packages to Marvin",
+                "description": "於 Blcks 專案下 (*{your_blcks_project_path}/bin*) 找尋已 packed 的 zip 檔並發佈至 Marvin 平台。"
             },
             {
                 "command": "trek.ansible.deploy",
-                "title": "Trek Ansible: Deploy Packed Packages to Marvin"
+                "title": "Trek Ansible: Deploy Packed Packages to Marvin",
+                "description": "於 Ansible 專案下 (*{your_ansible_project_path}/bin*) 找尋已 packed 的 zip 檔並發佈至 Marvin 平台。"
             },
             {
                 "command": "trek.shell.deploy",
-                "title": "Trek Shell: Deploy Packed Packages to Marvin"
+                "title": "Trek Shell: Deploy Packed Packages to Marvin",
+                "description": "於 Shell 專案下 (*{your_shell_project_path}/bin*) 找尋已 packed 的 zip 檔並發佈至 Marvin 平台。"
             },
             {
                 "command": "trek.terraform.deploy",
-                "title": "Trek Terraform: Deploy Packed Packages to Marvin"
+                "title": "Trek Terraform: Deploy Packed Packages to Marvin",
+                "description": "於 Terraform 專案下 (*{your_terraform_project_path}/bin*) 找尋已 packed 的 zip 檔並發佈至 Marvin 平台。"
             },
             {
                 "command": "trek.deploy.auto",
-                "title": "Trek: Deploy to Marvin"
+                "title": "Trek: Deploy to Marvin",
+                "description": "於 Trek 專案下執行 build, push, pack 和 deploy 專案至 Marvin 平台，將在 pack 時自動產生 workflow graph 的任務節點位置。"
             },
             {
                 "command": "trek.blcks.deploy.auto",
-                "title": "Trek Blcks: Deploy to Marvin"
+                "title": "Trek Blcks: Deploy to Marvin",
+                "description": "於 Blcks 專案下執行 build, push, pack 和 deploy 專案至 Marvin 平台。"
             },
             {
                 "command": "trek.shell.deploy.auto",
-                "title": "Trek Shell: Deploy to Marvin"
+                "title": "Trek Shell: Deploy to Marvin",
+                "description": "於 Shell 專案下執行 pack 和 deploy 專案至 Marvin 平台。"
             },
             {
                 "command": "trek.ansible.deploy.auto",
-                "title": "Trek Ansible: Deploy to Marvin"
+                "title": "Trek Ansible: Deploy to Marvin",
+                "description": "於 Ansible 專案下執行 pack 和 deploy 專案至 Marvin 平台。"
             },
             {
                 "command": "trek.terraform.deploy.auto",
-                "title": "Trek Terraform: Deploy to Marvin"
+                "title": "Trek Terraform: Deploy to Marvin",
+                "description": "於 Terraform 專案下執行 pack 和 deploy 專案至 Marvin 平台。"
             },
             {
                 "command": "trek.view.wf",
