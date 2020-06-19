@@ -82,7 +82,6 @@ def to_pretty_json(value):
 
 
 def get_jinja_env(*template_path):
-    print(template_path)
     jinja_env = Environment(
         loader=FileSystemLoader(template_path),
         extensions=["jinja2.ext.loopcontrols"],
