@@ -129,6 +129,3 @@ def trim_doc(docstring):
         trimmed_lines.append(line[4:])
     return "\n".join(trimmed_lines)
 
-
-if __name__ == "__main__":
-    generate_docs("/Users/chelsealo/code/src_code/core.vscode.extension.mflow/docs")
