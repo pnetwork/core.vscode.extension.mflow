@@ -16,11 +16,14 @@ def generate_docs(root_dir):
     os.makedirs(commands_doc_path, exist_ok=True)
     template_path = os.path.join(root_dir, "generator", "templates")
     usage_path = os.path.join(template_path, "commands_usage")
-    template_content_path = os.path.join(root_dir, "generator", "templates", "command_detail_var.tmp")
+    template_content_path = os.path.join(
+        root_dir, "generator", "templates", "command_detail.tmp"
+    )
     jinja_env = get_jinja_env(template_path, usage_path)
 
     command_names = []
     file_names = []
+    map_file = {}
     doc_path = os.path.join(root_dir, "..", "package.json")
     yaml_data = ""
     with open(doc_path, "r") as file_data:
@@ -29,25 +32,13 @@ def generate_docs(root_dir):
     commands = package_file["contributes"]["commands"]
 
     for cmd in commands:
-        if cmd.get("enablement"):
+        if cmd.get("enablement") or cmd.get("icon"):
             continue
-        file_names.append(
-            cmd["title"]
-            .replace("Trek Blcks: ", "blcks-")
-            .replace("Trek Ansible: ", "ansible-")
-            .replace("Trek Shell: ", "shell-")
-            .replace("Trek Terraform: ", "terraform-")
-            .replace("Trek: ", "")
-            .replace(" ", "_")
-            .lower()
-        )
+        cmd_id = cmd["command"].replace(".", "_").lower()
+        file_names.append(cmd_id)
         command_names.append(cmd["title"])
+        map_file[cmd["title"]] = cmd.get("description", "")
 
-    map_path = os.path.join(root_dir, "generator", "data", "cmd_map.json")
-    json_data = ""
-    with open(map_path, "r") as file_data:
-        json_data = file_data.read()
-    map_file = yaml.safe_load(json_data)
 
     # commands in reference
     i = 0
@@ -58,13 +49,13 @@ def generate_docs(root_dir):
 
         render_data = {
             "command_name": cmd,
-            "command_desc": newline(map_file.get(cmd, {}).get("desc", "")),
+            "command_desc": newline(map_file.get(cmd, {})),
         }
+        template_file = content_template
         if not os.path.isfile(content_template):
-            build_from_template(jinja_env, template_content_path, target_file, render_data)
-        else:
-            build_from_template(jinja_env, content_template, target_file, render_data)
+            template_file = template_content_path
 
+        build_from_template(jinja_env, template_file, target_file, render_data)
         i += 1
 
     # commands.rst
