@@ -1,9 +1,0 @@
-  Step 1. 選取要打包的目標為：
-
-      - :The Trek Project: 打包包含 workflow template 和使用到的腳本 (除了安裝的腳本以外)。
-      - :Only Script: 只要打包腳本。
-      - :Only Workflow: 只要打包 workflow template。
-
-  Step 2. 若上一步選擇為 ``Only Script`` 需選取腳本，其他則略過此步驟：
-
-    顯示 workflow template 使用到的腳本 (除了安裝的腳本以外)。

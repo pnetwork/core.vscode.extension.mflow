@@ -1,8 +1,5 @@
 # Trek VSCode Extension Changelog
 
-Trek VSCode Extension Changelog
-====================================
-
 Trek VSCode extension release package [Reference here](https://github.com/pnetwork/core.vscode.extension.mflow/raw/master/release/)
 
 ## Version v1.0.0-beta6
