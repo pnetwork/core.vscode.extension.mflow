@@ -1,0 +1,16 @@
+{% extends "command_detail.tmp" %}
+
+{% block title %}{{ command_name }}{% endblock %}
+{% block desc %}{{ command_desc }}{% endblock %}
+{% block usage %}
+只有 Blcks 腳本需要 build and push。
+
+  Step 1. 選取 build and push 的目標為：
+
+      - :The Trek Project: Build and push 包含 workflow template 和使用到的腳本 (除了安裝的腳本以外)。
+      - :Only Script: 只要 build and push 腳本。
+
+  Step 2. 若上一步選擇為 ``Only Script`` 需選取腳本，其他則略過此步驟：
+
+    顯示 workflow template 使用到的腳本 (除了安裝的腳本以外)。
+{% endblock %}
