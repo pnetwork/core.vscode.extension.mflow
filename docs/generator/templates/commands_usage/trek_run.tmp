@@ -1,0 +1,7 @@
+{% extends "command_detail.tmp" %}
+
+{% block title %}{{ command_name }}{% endblock %}
+{% block desc %}{{ command_desc }}
+
+  .. note:: 啟動環境說明請參考 :doc:`./trek_up`。
+{% endblock %}
