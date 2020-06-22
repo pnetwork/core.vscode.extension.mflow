@@ -73,42 +73,42 @@
             {
                 "command": "trek.blcks.create",
                 "title": "Trek Blcks: Create Blcks",
-                "description": "建立 Blcks 專案。 | 當在 workflow 專案下執行時，建置位址會在 ``{your_trek_project_path}/src/ansible/{your_blcks_project}``，若非 workflow 專案則會要選取腳本建立位置。"
+                "description": "建立 Blcks 專案。  | 當在 workflow 專案下執行時，建置位址會在 ``{your_trek_project_path}/src/ansible/{your_blcks_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.ansible.create",
                 "title": "Trek Ansible: Create Ansible",
-                "description": "建立 Ansible 專案。 | 當在 workflow 專案下執行時，建置位址會在 `{your_trek_project_path}/src/ansible/{your_ansible_project}``，若非 workflow 專案則會要選取腳本建立位置。"
+                "description": "建立 Ansible 專案。  | 當在 workflow 專案下執行時，建置位址會在 `{your_trek_project_path}/src/ansible/{your_ansible_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.shell.create",
                 "title": "Trek Shell: Create Shell",
-                "description": "建立一個 Shell 專案。 | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/ansible/{your_shell_project}``，若非 workflow 專案則會要選取腳本建立位置。"
+                "description": "建立一個 Shell 專案。  | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/ansible/{your_shell_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.terraform.create",
                 "title": "Trek Terraform: Create Terraform",
-                "description": "建立一個 Terraform 專案。 | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/terraform/{your_terraform_project}``，若非 workflow 專案則會要選取腳本建立位置。"
+                "description": "建立一個 Terraform 專案。  | 當在 workflow 專案下執行時，建置位址會在 ` ``{your_trek_project_path}/src/terraform/{your_terraform_project}``，若非 workflow 專案則會要選取腳本建立位置。"
             },
             {
                 "command": "trek.show.installed",
                 "title": "Trek: List Installed Scripts",
-                "description": "列出 Trek 專案已安裝腳本及版號。 | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
+                "description": "列出 Trek 專案已安裝腳本及版號。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
             },
             {
                 "command": "trek.remote.scripts",
                 "title": "Trek: List Remote Scripts",
-                "description": "列出遠端機器上的腳本及版號。 | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
+                "description": "列出遠端機器上的腳本及版號。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定。"
             },
             {
                 "command": "trek.install.script",
                 "title": "Trek: Install Script",
-                "description": "從遠端下載腳本並安裝至 Trek 專案中。 | 可下載指定腳本、或將 *packages.json* 檔案中定義的腳本全部下載。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定"
+                "description": "從遠端下載腳本並安裝至 Trek 專案中。  | 可下載指定腳本、或將 *packages.json* 檔案中定義的腳本全部下載。  | 遠端機器位置於 *config.json* 中 ``script_repository`` 欄位設定"
             },
             {
                 "command": "trek.uninstall.script",
                 "title": "Trek: Uninstall Script",
-                "description": "指定腳本，移除 Trek 專案中已安裝腳本。 | 將從 *{your_trek_project_path}/bin* 資料夾中移除該腳本。"
+                "description": "指定腳本，移除 Trek 專案中已安裝腳本。  | 將從 *{your_trek_project_path}/bin* 資料夾中移除該腳本。"
             },
             {
                 "command": "trek.up",
@@ -121,7 +121,8 @@
                 "icon": {
                     "light": "./resources/stop-light.svg",
                     "dark": "./resources/stop-dark.svg"
-                }
+                },
+                "description": "關閉執行環境。  | 關閉所有與由 Trek 產生的 docker containers。"
             },
             {
                 "command": "trek.run",
@@ -129,22 +130,23 @@
                 "icon": {
                     "light": "./resources/run-light.svg",
                     "dark": "./resources/run-dark.svg"
-                }
+                },
+                "description": "執行工作流程。  | 當環境尚未啟動時，會先啟動環境，再依 workflow template 描述流程執行。"
             },
             {
                 "command": "trek.blcks.run",
                 "title": "Trek Blcks: Run",
-                "description": "執行 Blcks 腳本。 | 啟動 Blcks container 環境，再執行腳本。會依照腳本內的設定檔 *{your_blcks_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
+                "description": "執行 Blcks 腳本。  | 啟動 Blcks container 環境，再執行腳本。會依照腳本內的設定檔 *{your_blcks_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.ansible.run",
                 "title": "Trek Ansible: Run",
-                "description": "執行 Ansible 腳本。 | 依照腳本內的設定檔 *{your_ansible_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
+                "description": "執行 Ansible 腳本。  | 依照腳本內的設定檔 *{your_ansible_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.shell.run",
                 "title": "Trek Shell: Run",
-                "description": "執行 Shell 腳本。 | 依照腳本內的設定檔 *{your_shell_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
+                "description": "執行 Shell 腳本。  | 依照腳本內的設定檔 *{your_shell_path}/.trek/config.json* 執行，且根據設定檔中的輸入參數檔 input_event_path 帶入 inputs 欄位"
             },
             {
                 "command": "trek.terraform.run",
@@ -159,27 +161,27 @@
             {
                 "command": "trek.pack",
                 "title": "Trek: Pack",
-                "description": "打包 Trek 專案。 | 將產生 workflow template 任務節點位置，與 inline script 一起打包成 zip 並放置於 *{your_trek_project_path}/bin* 資料夾中。"
+                "description": "打包 Trek 專案。  | 將產生 workflow template 任務節點位置，與 inline script 一起打包成 zip 並放置於 *{your_trek_project_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.blcks.pack",
                 "title": "Trek Blcks: Pack",
-                "description": "打包 Blcks 專案。 | 打包 Blcks 專案下的 .para 和 openfaas.yml 一起打包成 zip 並放置於 *{your_blcks_path}/bin* 資料夾中。"
+                "description": "打包 Blcks 專案。  | 打包 Blcks 專案下的 .para 和 openfaas.yml 一起打包成 zip 並放置於 *{your_blcks_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.shell.pack",
                 "title": "Trek Shell: Pack",
-                "description": "打包 Shell 專案。 | 打包 Shell 專案下的 .para 和 .sh 一起打包成 zip 並放置於 *{your_shell_path}/bin* 資料夾中。"
+                "description": "打包 Shell 專案。  | 打包 Shell 專案下的 .para 和 .sh 一起打包成 zip 並放置於 *{your_shell_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.ansible.pack",
                 "title": "Trek Ansible: Pack",
-                "description": "打包 Ansible 專案。 | 打包 Ansible 專案下的 .para 和 .yml 一起打包成 zip 並放置於 *{your_ansible_path}/bin* 資料夾中。"
+                "description": "打包 Ansible 專案。  | 打包 Ansible 專案下的 .para 和 .yml 一起打包成 zip 並放置於 *{your_ansible_path}/bin* 資料夾中。"
             },
             {
                 "command": "trek.terraform.pack",
                 "title": "Trek Terraform: Pack",
-                "description": "打包 Terraform 專案。 | 打包 Terraform 專案下的 .para 和 .tf 一起打包成 zip 並放置於 *{your_terraformpath}/bin* 資料夾中。"
+                "description": "打包 Terraform 專案。  | 打包 Terraform 專案下的 .para 和 .tf 一起打包成 zip 並放置於 *{your_terraformpath}/bin* 資料夾中。"
             },
             {
                 "command": "trek.build",

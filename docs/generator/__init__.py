@@ -32,7 +32,7 @@ def generate_docs(root_dir):
     commands = package_file["contributes"]["commands"]
 
     for cmd in commands:
-        if cmd.get("enablement") or cmd.get("icon"):
+        if cmd.get("enablement"):
             continue
         cmd_id = cmd["command"].replace(".", "_").lower()
         file_names.append(cmd_id)
