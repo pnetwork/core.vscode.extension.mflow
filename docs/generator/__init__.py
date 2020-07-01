@@ -2,7 +2,6 @@ import os
 import json
 
 from jinja2 import Environment, BaseLoader, FileSystemLoader
-from click import Context
 import yaml
 import json
 import re
