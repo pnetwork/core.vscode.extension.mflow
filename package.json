@@ -305,7 +305,7 @@
         "eslint-plugin-standard": "^4.0.1",
         "glob": "^7.1.6",
         "graphviz": "0.0.9",
-        "mocha": "^7.2.0",
+        "mocha": "^10.2.0",
         "prettier": "^1.19.1",
         "sinon": "^9.0.2",
         "typescript": "^3.7.5",
